@@ -1,0 +1,8 @@
+{
+  "jupyter.lab.shortcuts": [],
+  "title": "hintbot",
+  "description": "hintbot settings.",
+  "type": "object",
+  "properties": {},
+  "additionalProperties": false
+}
