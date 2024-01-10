@@ -11,4 +11,3 @@ project_short_description: A JupyterLab extension.
 python_name: hintbot
 repository: https://github.com/educational-technology-collective/hintbot
 test: false
-

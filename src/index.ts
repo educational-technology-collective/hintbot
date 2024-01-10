@@ -15,7 +15,10 @@ const createHintBanner = (notebookPanel: NotebookPanel, hint: string) => {
   }
   const hintBannerPlaceholder = document.createElement('div');
   hintBannerPlaceholder.id = 'hint-banner-placeholder';
-  notebookPanel.content.node.insertBefore(hintBannerPlaceholder, notebookPanel.content.node.firstChild); 
+  notebookPanel.content.node.insertBefore(
+    hintBannerPlaceholder,
+    notebookPanel.content.node.firstChild
+  );
 
   const hintBanner = document.createElement('div');
   hintBanner.id = 'hint-banner';
@@ -33,7 +36,7 @@ const createHintBanner = (notebookPanel: NotebookPanel, hint: string) => {
   unhelpfulButton.classList.add('hint-banner-button');
   unhelpfulButton.innerText = 'Unhelpful 👎';
   const hintBannerButtonClicked = () => {
-    console.log('hint banner button clicked')
+    console.log('hint banner button clicked');
     hintBanner.remove();
     hintBannerPlaceholder.remove();
   };
@@ -45,12 +48,18 @@ const createHintBanner = (notebookPanel: NotebookPanel, hint: string) => {
   hintBannerButtonsContainer.appendChild(hintBannerButtons);
   hintBanner.appendChild(hintBannerButtonsContainer);
 
-  notebookPanel.content.node.parentElement.insertBefore(hintBanner, notebookPanel.content.node);
+  notebookPanel.content.node.parentElement.insertBefore(
+    hintBanner,
+    notebookPanel.content.node
+  );
 
   console.log('hint banner added');
-}
+};
 
-const hintButtonClicked = async (notebookPanel: NotebookPanel, gradeId: string) => {
+const hintButtonClicked = async (
+  notebookPanel: NotebookPanel,
+  gradeId: string
+) => {
   console.log('hint button clicked');
   if (document.getElementById('hint-banner')) {
     showDialog({
@@ -61,9 +70,8 @@ const hintButtonClicked = async (notebookPanel: NotebookPanel, gradeId: string) 
           className: 'jp-About-button jp-mod-reject jp-mod-styled'
         })
       ]
-    })
-  }
-  else {
+    });
+  } else {
     // const hint = await requestAPI<any>('hintbot', {
     //   notebookPanel: notebookPanel.content.model.toJSON(),
     //   gradeId: gradeId
@@ -71,17 +79,14 @@ const hintButtonClicked = async (notebookPanel: NotebookPanel, gradeId: string) 
     const hint = 'This is a hint';
     createHintBanner(notebookPanel, hint);
   }
-}
+};
 
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'hintbot:plugin',
   description: 'A JupyterLab extension.',
   autoStart: true,
   requires: [INotebookTracker],
-  activate: (
-    app: JupyterFrontEnd, 
-    notebookTracker: INotebookTracker
-  ) => {
+  activate: (app: JupyterFrontEnd, notebookTracker: INotebookTracker) => {
     console.log('JupyterLab extension hintbot is activated!');
 
     notebookTracker.widgetAdded.connect(
@@ -91,11 +96,18 @@ const plugin: JupyterFrontEndPlugin<void> = {
         const cells = notebookPanel.content.model.cells;
         for (let i = 0; i < cells.length; i++) {
           if (
-            cells.get(i).getMetadata('nbgrader') && cells.get(i).getMetadata('nbgrader')?.grade_id && cells.get(i).getMetadata('nbgrader')?.cell_type == 'markdown') {
+            cells.get(i).getMetadata('nbgrader') &&
+            cells.get(i).getMetadata('nbgrader')?.grade_id &&
+            cells.get(i).getMetadata('nbgrader')?.cell_type === 'markdown'
+          ) {
             const hintButton = document.createElement('button');
             hintButton.classList.add('hint-button');
             hintButton.innerText = 'Hint';
-            hintButton.onclick = () => hintButtonClicked(notebookPanel, cells.get(i).getMetadata('nbgrader')?.grade_id);
+            hintButton.onclick = () =>
+              hintButtonClicked(
+                notebookPanel,
+                cells.get(i).getMetadata('nbgrader')?.grade_id
+              );
             notebookPanel.content.widgets[i].node.appendChild(hintButton);
           }
         }
