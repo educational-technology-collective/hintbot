@@ -56,9 +56,10 @@
     },
     "dependencies": {
         "@jupyterlab/application": "^4.0.0",
-        "@jupyterlab/settingregistry": "^4.0.0",
         "@jupyterlab/coreutils": "^6.0.0",
-        "@jupyterlab/services": "^7.0.0"
+        "@jupyterlab/notebook": "^4.0.10",
+        "@jupyterlab/services": "^7.0.0",
+        "@jupyterlab/settingregistry": "^4.0.0"
     },
     "devDependencies": {
         "@jupyterlab/builder": "^4.0.0",
@@ -95,14 +96,14 @@
     },
     "jupyterlab": {
         "discovery": {
-        "server": {
-            "managers": [
-                "pip"
-            ],
-            "base": {
-                "name": "hintbot"
+            "server": {
+                "managers": [
+                    "pip"
+                ],
+                "base": {
+                    "name": "hintbot"
+                }
             }
-        }
         },
         "extension": true,
         "outputDir": "hintbot/labextension",

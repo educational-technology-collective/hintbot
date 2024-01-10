@@ -3,3 +3,68 @@
 
     https://jupyterlab.readthedocs.io/en/stable/developer/css.html
 */
+.hint-button {
+    width: 60%;
+    display: block;
+    background-color: #3498db;
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1.2;
+    margin: 6px auto;
+    padding: 6px 12px;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+:root {
+    --hint-banner-height: 300px;
+}
+
+#hint-banner-placeholder {
+    width: 100%;
+    height: var(--hint-banner-height);
+    background-color: #fff;
+}
+#hint-banner {
+    position: fixed;
+    z-index: 10;
+    left: 0;
+    right: 0;
+    top: 30px;
+    width: calc(100% - 32px);
+    height: calc(var(--hint-banner-height));
+    margin: 0 auto;
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+
+    font-size: 14px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+}
+#hint-banner-buttons-container {
+    display: flex;
+    width: 90%;
+    justify-content: flex-end;
+}
+.hint-banner-button {
+    background-color: #3498db;
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1.2;
+    margin: 6px 6px;
+    padding: 6px 12px;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+}
