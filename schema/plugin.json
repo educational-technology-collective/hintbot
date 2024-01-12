@@ -3,6 +3,19 @@
   "title": "hintbot",
   "description": "hintbot settings.",
   "type": "object",
-  "properties": {},
+  "properties": {
+    "preReflection": {
+      "type": "boolean",
+      "title": "Pre-Reflection",
+      "description": "Enable pre-reflection or not",
+      "default": false
+    },
+    "postReflection": {
+      "type": "boolean",
+      "title": "Post-Reflection",
+      "description": "Enable post-reflection or not",
+      "default": true
+    }
+  },
   "additionalProperties": false
 }
