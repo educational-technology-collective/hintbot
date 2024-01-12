@@ -6,7 +6,7 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { requestAPI } from './handler';
-import React from 'react';
+import { ReflectionInputWidget } from './ReflectionInputWidget';
 
 const HINTBOT_API = '';
 
@@ -45,22 +45,11 @@ const createHintBanner = (
   const hintBannerButtonClicked = async () => {
     console.log('hint banner button clicked');
     if (postReflection) {
-      const body = (
-        <div className="reflection">
-          <label>
-            Write a brief statement considering the text given to you by the
-            hint. How does this change your approach to the problem?
-            <textarea
-              name="post-reflection-input"
-              className="reflection-input"
-              rows={10}
-            />
-          </label>
-        </div>
-      );
+      const postReflectionMessage =
+        'Write a brief statement of what you learned from the hint and how you will use it to solve the problem.';
       const dialogResult = await showDialog({
         title: 'Reflection',
-        body,
+        body: new ReflectionInputWidget(postReflectionMessage),
         buttons: [
           Dialog.createButton({
             label: 'Cancel'
@@ -76,7 +65,8 @@ const createHintBanner = (
           eventName: 'postReflectionSubmitted',
           eventTime: Date.now(),
           eventInfo: {
-            gradeId: gradeId
+            gradeId: gradeId,
+            reflection: dialogResult.value
           }
         };
         console.log(event);
@@ -137,23 +127,11 @@ const hintButtonClicked = async (
     const hint = 'This is a hint';
     if (preReflection) {
       console.log('pre reflection');
-      const body = (
-        <div className="reflection">
-          <label>
-            Write a brief statement of what the problem is that you are facing
-            and why you think your solution is not working.
-            <textarea
-              name="pre-reflection-input"
-              id="pre-reflection-input"
-              className="reflection-input"
-              rows={10}
-            />
-          </label>
-        </div>
-      );
+      const preReflectionMessage =
+        'Write a brief statement of what the problem is that you are facing and why you think your solution is not working.';
       const dialogResult = await showDialog({
         title: 'Reflection',
-        body,
+        body: new ReflectionInputWidget(preReflectionMessage),
         buttons: [
           Dialog.createButton({ label: 'Cancel' }),
           Dialog.createButton({ label: 'Submit' })
@@ -165,7 +143,8 @@ const hintButtonClicked = async (
           eventName: 'preReflectionSubmitted',
           eventTime: Date.now(),
           eventInfo: {
-            gradeId: gradeId
+            gradeId: gradeId,
+            reflection: dialogResult.value
           }
         };
         console.log(event);
@@ -180,7 +159,6 @@ const hintButtonClicked = async (
           }
         };
         console.log(event);
-        return;
       }
     } else {
       createHintBanner(notebookPanel, hint, gradeId, postReflection);
