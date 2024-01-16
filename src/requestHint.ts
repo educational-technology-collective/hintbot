@@ -47,7 +47,7 @@ export const requestHint = async (
       buttons: [
         Dialog.createButton({
           label: 'Dismiss',
-          className: 'jp-About-button jp-mod-reject jp-mod-styled'
+          className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
         })
       ]
     });

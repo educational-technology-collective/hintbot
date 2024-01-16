@@ -6,7 +6,7 @@
 .hint-button {
   width: 60%;
   display: block;
-  background-color: #3498db;
+  background-color: #1976D2;
   border: 1px solid #e0e0e0;
   border-radius: 3px;
   color: #fff;
@@ -56,7 +56,7 @@
 }
 
 .hint-banner-button {
-  background-color: #3498db;
+  background-color: #1976D2;
   border: 1px solid #e0e0e0;
   border-radius: 3px;
   color: #fff;
