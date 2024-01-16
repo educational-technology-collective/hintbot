@@ -59,7 +59,8 @@
         "@jupyterlab/coreutils": "^6.0.0",
         "@jupyterlab/notebook": "^4.0.10",
         "@jupyterlab/services": "^7.0.0",
-        "@jupyterlab/settingregistry": "^4.0.0"
+        "@jupyterlab/settingregistry": "^4.0.0",
+        "jupyterlab-pioneer": "^1.2.0"
     },
     "devDependencies": {
         "@jupyterlab/builder": "^4.0.0",
@@ -107,7 +108,14 @@
         },
         "extension": true,
         "outputDir": "hintbot/labextension",
-        "schemaDir": "schema"
+        "schemaDir": "schema",
+        "sharedPackages": {
+            "jupyterlab-pioneer": {
+                "bundled": false,
+                "singleton": true,
+                "strictVersion": true
+            }
+        }
     },
     "eslintIgnore": [
         "node_modules",

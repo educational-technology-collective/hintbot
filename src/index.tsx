@@ -7,6 +7,7 @@ import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { requestAPI } from './handler';
 import { ReflectionInputWidget } from './ReflectionInputWidget';
+import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 
 const HINTBOT_API = '';
 
@@ -14,12 +15,12 @@ const createHintBanner = (
   notebookPanel: NotebookPanel,
   hint: string,
   gradeId: string,
-  postReflection: boolean
+  postReflection: boolean,
+  pioneer: IJupyterLabPioneer
 ) => {
   if (document.getElementById('hint-banner')) {
     return;
   }
-  console.log('creating hint banner');
   const hintBannerPlaceholder = document.createElement('div');
   hintBannerPlaceholder.id = 'hint-banner-placeholder';
   notebookPanel.content.node.insertBefore(
@@ -42,9 +43,38 @@ const createHintBanner = (
   const unhelpfulButton = document.createElement('button');
   unhelpfulButton.classList.add('hint-banner-button');
   unhelpfulButton.innerText = 'Unhelpful 👎';
-  const hintBannerButtonClicked = async () => {
-    console.log('hint banner button clicked');
+  const hintBannerButtonClicked = async (evaluation: string) => {
+    pioneer.exporters.forEach(exporter => {
+      pioneer.publishEvent(
+        notebookPanel,
+        {
+          eventName: 'HintEvaluated',
+          eventTime: Date.now(),
+          eventInfo: {
+            gradeId: gradeId,
+            evaluation: evaluation
+          }
+        },
+        exporter,
+        false
+      );
+    });
     if (postReflection) {
+      pioneer.exporters.forEach(exporter => {
+        pioneer.publishEvent(
+          notebookPanel,
+          {
+            eventName: 'PreReflectionDialogDisplayed',
+            eventTime: Date.now(),
+            eventInfo: {
+              gradeId: gradeId
+            }
+          },
+          exporter,
+          false
+        );
+      });
+
       const postReflectionMessage =
         'Write a brief statement of what you learned from the hint and how you will use it to solve the problem.';
       const dialogResult = await showDialog({
@@ -61,32 +91,52 @@ const createHintBanner = (
       });
 
       if (dialogResult.button.label === 'Submit') {
-        const event = {
-          eventName: 'postReflectionSubmitted',
-          eventTime: Date.now(),
-          eventInfo: {
-            gradeId: gradeId,
-            reflection: dialogResult.value
-          }
-        };
-        console.log(event);
+        pioneer.exporters.forEach(exporter => {
+          pioneer.publishEvent(
+            notebookPanel,
+            {
+              eventName: 'PostReflectionSubmitted',
+              eventTime: Date.now(),
+              eventInfo: {
+                gradeId: gradeId,
+                reflection: dialogResult.value
+              }
+            },
+            exporter,
+            false
+          );
+        });
         hintBanner.remove();
         hintBannerPlaceholder.remove();
       }
       if (dialogResult.button.label === 'Cancel') {
-        const event = {
-          eventName: 'postReflectionCanceled',
-          eventTime: Date.now(),
-          eventInfo: {
-            gradeId: gradeId
-          }
-        };
-        console.log(event);
+        pioneer.exporters.forEach(exporter => {
+          pioneer.publishEvent(
+            notebookPanel,
+            {
+              eventName: 'PostReflectionCanceled',
+              eventTime: Date.now(),
+              eventInfo: {
+                gradeId: gradeId,
+                reflection: dialogResult.value
+              }
+            },
+            exporter,
+            false
+          );
+        });
       }
+    } else {
+      hintBanner.remove();
+      hintBannerPlaceholder.remove();
     }
   };
-  helpfulButton.onclick = hintBannerButtonClicked;
-  unhelpfulButton.onclick = hintBannerButtonClicked;
+  helpfulButton.onclick = () => {
+    hintBannerButtonClicked('helpful');
+  };
+  unhelpfulButton.onclick = () => {
+    hintBannerButtonClicked('unhelpful');
+  };
   hintBannerButtons.appendChild(helpfulButton);
   hintBannerButtons.appendChild(unhelpfulButton);
 
@@ -98,18 +148,56 @@ const createHintBanner = (
     notebookPanel.content.node
   );
 
-  console.log('hint banner added');
+  pioneer.exporters.forEach(exporter => {
+    pioneer.publishEvent(
+      notebookPanel,
+      {
+        eventName: 'HintBannerAdded',
+        eventTime: Date.now(),
+        eventInfo: {
+          gradeId: gradeId
+        }
+      },
+      exporter,
+      false
+    );
+  });
 };
 
 const hintButtonClicked = async (
   notebookPanel: NotebookPanel,
   gradeId: string,
-  settings: ISettingRegistry.ISettings
+  settings: ISettingRegistry.ISettings,
+  pioneer: IJupyterLabPioneer
 ) => {
-  console.log('hint button clicked');
+  pioneer.exporters.forEach(exporter => {
+    pioneer.publishEvent(
+      notebookPanel,
+      {
+        eventName: 'HintRequested',
+        eventTime: Date.now(),
+        eventInfo: {
+          gradeId: gradeId
+        }
+      },
+      exporter,
+      false
+    );
+  });
   const preReflection = settings.get('preReflection').composite as boolean;
   const postReflection = settings.get('postReflection').composite as boolean;
   if (document.getElementById('hint-banner')) {
+    pioneer.exporters.forEach(exporter => {
+      pioneer.publishEvent(
+        notebookPanel,
+        {
+          eventName: 'HintAlreadyExists',
+          eventTime: Date.now()
+        },
+        exporter,
+        false
+      );
+    });
     showDialog({
       title: 'Please review previous hint first',
       buttons: [
@@ -126,7 +214,21 @@ const hintButtonClicked = async (
     // });
     const hint = 'This is a hint';
     if (preReflection) {
-      console.log('pre reflection');
+      pioneer.exporters.forEach(exporter => {
+        pioneer.publishEvent(
+          notebookPanel,
+          {
+            eventName: 'PreReflectionDialogDisplayed',
+            eventTime: Date.now(),
+            eventInfo: {
+              gradeId: gradeId
+            }
+          },
+          exporter,
+          false
+        );
+      });
+
       const preReflectionMessage =
         'Write a brief statement of what the problem is that you are facing and why you think your solution is not working.';
       const dialogResult = await showDialog({
@@ -139,29 +241,42 @@ const hintButtonClicked = async (
       });
 
       if (dialogResult.button.label === 'Submit') {
-        const event = {
-          eventName: 'preReflectionSubmitted',
-          eventTime: Date.now(),
-          eventInfo: {
-            gradeId: gradeId,
-            reflection: dialogResult.value
-          }
-        };
-        console.log(event);
-        createHintBanner(notebookPanel, hint, gradeId, postReflection);
+        pioneer.exporters.forEach(exporter => {
+          pioneer.publishEvent(
+            notebookPanel,
+            {
+              eventName: 'PreReflectionSubmitted',
+              eventTime: Date.now(),
+              eventInfo: {
+                gradeId: gradeId,
+                reflection: dialogResult.value
+              }
+            },
+            exporter,
+            false
+          );
+        });
+        createHintBanner(notebookPanel, hint, gradeId, postReflection, pioneer);
       }
       if (dialogResult.button.label === 'Cancel') {
-        const event = {
-          eventName: 'preReflectionCanceled',
-          eventTime: Date.now(),
-          eventInfo: {
-            gradeId: gradeId
-          }
-        };
-        console.log(event);
+        pioneer.exporters.forEach(exporter => {
+          pioneer.publishEvent(
+            notebookPanel,
+            {
+              eventName: 'PreReflectionCancelled',
+              eventTime: Date.now(),
+              eventInfo: {
+                gradeId: gradeId,
+                reflection: dialogResult.value
+              }
+            },
+            exporter,
+            false
+          );
+        });
       }
     } else {
-      createHintBanner(notebookPanel, hint, gradeId, postReflection);
+      createHintBanner(notebookPanel, hint, gradeId, postReflection, pioneer);
     }
   }
 };
@@ -170,11 +285,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
   id: 'hintbot:plugin',
   description: 'A JupyterLab extension.',
   autoStart: true,
-  requires: [INotebookTracker, ISettingRegistry],
+  requires: [INotebookTracker, ISettingRegistry, IJupyterLabPioneer],
   activate: async (
     app: JupyterFrontEnd,
     notebookTracker: INotebookTracker,
-    settingRegistry: ISettingRegistry
+    settingRegistry: ISettingRegistry,
+    pioneer: IJupyterLabPioneer
   ) => {
     console.log('JupyterLab extension hintbot is activated!');
 
@@ -183,6 +299,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     notebookTracker.widgetAdded.connect(
       async (_, notebookPanel: NotebookPanel) => {
         await notebookPanel.revealed;
+        await pioneer.loadExporters(notebookPanel);
 
         const cells = notebookPanel.content.model.cells;
         for (let i = 0; i < cells.length; i++) {
@@ -198,12 +315,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
               hintButtonClicked(
                 notebookPanel,
                 cells.get(i).getMetadata('nbgrader')?.grade_id,
-                settings
+                settings,
+                pioneer
               );
             notebookPanel.content.widgets[i].node.appendChild(hintButton);
           }
         }
-        console.log('hint button added');
       }
     );
   }
