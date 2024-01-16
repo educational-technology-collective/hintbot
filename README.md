@@ -1,6 +1,5 @@
 # hintbot
 
-[![Github Actions Status](https://github.com/educational-technology-collective/hintbot/workflows/Build/badge.svg)](https://github.com/educational-technology-collective/hintbot/actions/workflows/build.yml)
 A JupyterLab extension.
 
 This extension is composed of a Python package named `hintbot`
