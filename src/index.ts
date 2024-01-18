@@ -59,11 +59,10 @@ const plugin: JupyterFrontEndPlugin<void> = {
               if (cells.get(i).getMetadata('remaining_hints') === undefined) {
                 cells.get(i).setMetadata('remaining_hints', hintQuantity);
                 hintButton.innerText = `Hint (${hintQuantity} left)`;
-              }
-              else {
+              } else {
                 hintButton.innerText = `Hint (${cells
-                .get(i)
-                .getMetadata('remaining_hints')} left)`;
+                  .get(i)
+                  .getMetadata('remaining_hints')} left)`;
               }
             }
           }
