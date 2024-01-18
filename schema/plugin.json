@@ -15,6 +15,12 @@
       "title": "Post-Reflection",
       "description": "Enable post-reflection or not",
       "default": true
+    },
+    "hintQuantity": {
+      "type": "number",
+      "title": "Hint Quantity (per question)",
+      "description": "The number of hints allowed for each question",
+      "default": 1
     }
   },
   "additionalProperties": false

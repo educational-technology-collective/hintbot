@@ -1,44 +1,26 @@
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { NotebookPanel } from '@jupyterlab/notebook';
+import { IDocumentManager } from '@jupyterlab/docmanager';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { showReflectionDialog } from './showReflectionDialog';
 import { createHintBanner } from './createHintBanner';
+import { ICellModel } from '@jupyterlab/cells';
 
 export const requestHint = async (
+  docManager: IDocumentManager,
   notebookPanel: NotebookPanel,
   settings: ISettingRegistry.ISettings,
   pioneer: IJupyterLabPioneer,
-  gradeId: string
+  cell: ICellModel
 ) => {
-  pioneer.exporters.forEach(exporter => {
-    pioneer.publishEvent(
-      notebookPanel,
-      {
-        eventName: 'HintRequested',
-        eventTime: Date.now(),
-        eventInfo: {
-          gradeId: gradeId
-        }
-      },
-      exporter,
-      false
-    );
-  });
-  const preReflection = settings.get('preReflection').composite as boolean;
-  const postReflection = settings.get('postReflection').composite as boolean;
+  const gradeId = cell.getMetadata('nbgrader')?.grade_id;
+  const remainingHints = cell.getMetadata('remaining_hints');
+
+  let status = 'HintRequested';
+
   if (document.getElementById('hint-banner')) {
-    pioneer.exporters.forEach(exporter => {
-      pioneer.publishEvent(
-        notebookPanel,
-        {
-          eventName: 'HintAlreadyExists',
-          eventTime: Date.now()
-        },
-        exporter,
-        false
-      );
-    });
+    status = 'HintAlreadyExists';
     showDialog({
       title: 'Please review previous hint first',
       buttons: [
@@ -48,25 +30,24 @@ export const requestHint = async (
         })
       ]
     });
+  } else if (remainingHints < 1) {
+    status = 'NotEnoughHint';
+    showDialog({
+      title: 'No hint left',
+      buttons: [
+        Dialog.createButton({
+          label: 'Dismiss',
+          className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
+        })
+      ]
+    });
   } else {
-    createHintBanner(notebookPanel, pioneer, gradeId, postReflection);
+    const preReflection = settings.get('preReflection').composite as boolean;
+    const postReflection = settings.get('postReflection').composite as boolean;
+
+    createHintBanner(docManager, notebookPanel, pioneer, cell, postReflection);
 
     if (preReflection) {
-      pioneer.exporters.forEach(exporter => {
-        pioneer.publishEvent(
-          notebookPanel,
-          {
-            eventName: 'PreReflectionDialogDisplayed',
-            eventTime: Date.now(),
-            eventInfo: {
-              gradeId: gradeId
-            }
-          },
-          exporter,
-          false
-        );
-      });
-
       document.getElementById('hint-banner').style.filter = 'blur(10px)';
 
       const dialogResult = await showReflectionDialog(
@@ -75,40 +56,38 @@ export const requestHint = async (
 
       document.getElementById('hint-banner').style.filter = 'none';
 
-      if (dialogResult.button.label === 'Submit') {
-        pioneer.exporters.forEach(exporter => {
-          pioneer.publishEvent(
-            notebookPanel,
-            {
-              eventName: 'PreReflectionSubmitted',
-              eventTime: Date.now(),
-              eventInfo: {
-                gradeId: gradeId,
-                reflection: dialogResult.value
-              }
-            },
-            exporter,
-            false
-          );
-        });
-      }
-      if (dialogResult.button.label === 'Cancel') {
-        pioneer.exporters.forEach(exporter => {
-          pioneer.publishEvent(
-            notebookPanel,
-            {
-              eventName: 'PreReflectionCancelled',
-              eventTime: Date.now(),
-              eventInfo: {
-                gradeId: gradeId,
-                reflection: dialogResult.value
-              }
-            },
-            exporter,
-            false
-          );
-        });
-      }
+      pioneer.exporters.forEach(exporter => {
+        pioneer.publishEvent(
+          notebookPanel,
+          {
+            eventName: 'PreReflection',
+            eventTime: Date.now(),
+            eventInfo: {
+              status: dialogResult.button.label,
+              gradeId: gradeId,
+              reflection: dialogResult.value
+            }
+          },
+          exporter,
+          false
+        );
+      });
     }
   }
+
+  pioneer.exporters.forEach(exporter => {
+    pioneer.publishEvent(
+      notebookPanel,
+      {
+        eventName: 'HintRequest',
+        eventTime: Date.now(),
+        eventInfo: {
+          status: status,
+          gradeId: gradeId
+        }
+      },
+      exporter,
+      false
+    );
+  });
 };

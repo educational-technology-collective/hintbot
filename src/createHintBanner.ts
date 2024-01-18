@@ -1,6 +1,8 @@
 import { NotebookPanel } from '@jupyterlab/notebook';
+import { IDocumentManager } from '@jupyterlab/docmanager';
 import { showReflectionDialog } from './showReflectionDialog';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
+import { ICellModel } from '@jupyterlab/cells';
 
 function fetchHint() {
   return new Promise<string>(resolve => {
@@ -12,14 +14,15 @@ function fetchHint() {
 }
 
 export const createHintBanner = async (
+  docManager: IDocumentManager,
   notebookPanel: NotebookPanel,
   pioneer: IJupyterLabPioneer,
-  gradeId: string,
+  cell: ICellModel,
   postReflection: boolean
 ) => {
-  if (document.getElementById('hint-banner')) {
-    return;
-  }
+  const gradeId = cell.getMetadata('nbgrader').grade_id;
+  const remainingHints = cell.getMetadata('remaining_hints');
+
   const hintBannerPlaceholder = document.createElement('div');
   hintBannerPlaceholder.id = 'hint-banner-placeholder';
   notebookPanel.content.node.insertBefore(
@@ -29,17 +32,21 @@ export const createHintBanner = async (
 
   const hintBanner = document.createElement('div');
   hintBanner.id = 'hint-banner';
-  // hintBanner.innerText = hint;
   notebookPanel.content.node.parentElement?.insertBefore(
     hintBanner,
     notebookPanel.content.node
   );
 
-  hintBanner.innerText = 'Fetching hint... Please do not refresh the page. \n (It usually takes 1-2 minutes to generate a hint.)';
+  hintBanner.innerText =
+    'Fetching hint... Please do not refresh the page. \n (It usually takes 1-2 minutes to generate a hint.)';
 
   const hintContent = await fetchHint();
-
   hintBanner.innerText = hintContent;
+  cell.setMetadata('remaining_hints', remainingHints - 1);
+  document.getElementById(gradeId).innerText = `Hint (${
+    remainingHints - 1
+  } left)`;
+  docManager.contextForWidget(notebookPanel).save();
 
   const hintBannerButtonsContainer = document.createElement('div');
   hintBannerButtonsContainer.id = 'hint-banner-buttons-container';
@@ -62,69 +69,40 @@ export const createHintBanner = async (
           eventTime: Date.now(),
           eventInfo: {
             gradeId: gradeId,
+            hintContent: hintContent,
             evaluation: evaluation
           }
         },
         exporter,
-        false
+        true
       );
     });
     if (postReflection) {
+      const dialogResult = await showReflectionDialog(
+        'Write a brief statement of what you learned from the hint and how you will use it to solve the problem.'
+      );
+
+      if (dialogResult.button.label === 'Submit') {
+        hintBanner.remove();
+        hintBannerPlaceholder.remove();
+      }
+
       pioneer.exporters.forEach(exporter => {
         pioneer.publishEvent(
           notebookPanel,
           {
-            eventName: 'PreReflectionDialogDisplayed',
+            eventName: 'PostReflection',
             eventTime: Date.now(),
             eventInfo: {
-              gradeId: gradeId
+              status: dialogResult.button.label,
+              gradeId: gradeId,
+              reflection: dialogResult.value
             }
           },
           exporter,
           false
         );
       });
-
-      const dialogResult = await showReflectionDialog(
-        'Write a brief statement of what you learned from the hint and how you will use it to solve the problem.'
-      );
-
-      if (dialogResult.button.label === 'Submit') {
-        pioneer.exporters.forEach(exporter => {
-          pioneer.publishEvent(
-            notebookPanel,
-            {
-              eventName: 'PostReflectionSubmitted',
-              eventTime: Date.now(),
-              eventInfo: {
-                gradeId: gradeId,
-                reflection: dialogResult.value
-              }
-            },
-            exporter,
-            false
-          );
-        });
-        hintBanner.remove();
-        hintBannerPlaceholder.remove();
-      }
-      if (dialogResult.button.label === 'Cancel') {
-        pioneer.exporters.forEach(exporter => {
-          pioneer.publishEvent(
-            notebookPanel,
-            {
-              eventName: 'PostReflectionCanceled',
-              eventTime: Date.now(),
-              eventInfo: {
-                gradeId: gradeId,
-                reflection: dialogResult.value
-              }
-            },
-            exporter,
-            false
-          );
-        });
-      }
     } else {
       hintBanner.remove();
       hintBannerPlaceholder.remove();
@@ -141,19 +119,4 @@ export const createHintBanner = async (
 
   hintBannerButtonsContainer.appendChild(hintBannerButtons);
   hintBanner.appendChild(hintBannerButtonsContainer);
-
-  pioneer.exporters.forEach(exporter => {
-    pioneer.publishEvent(
-      notebookPanel,
-      {
-        eventName: 'HintBannerAdded',
-        eventTime: Date.now(),
-        eventInfo: {
-          gradeId: gradeId
-        }
-      },
-      exporter,
-      false
-    );
-  });
 };
