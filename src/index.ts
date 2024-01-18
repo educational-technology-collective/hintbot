@@ -58,10 +58,13 @@ const plugin: JupyterFrontEndPlugin<void> = {
               notebookPanel.content.widgets[i].node.appendChild(hintButton);
               if (cells.get(i).getMetadata('remaining_hints') === undefined) {
                 cells.get(i).setMetadata('remaining_hints', hintQuantity);
+                hintButton.innerText = `Hint (${hintQuantity} left)`;
               }
-              hintButton.innerText = `Hint (${cells
+              else {
+                hintButton.innerText = `Hint (${cells
                 .get(i)
                 .getMetadata('remaining_hints')} left)`;
+              }
             }
           }
         }
