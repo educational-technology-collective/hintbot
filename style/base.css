@@ -22,7 +22,7 @@
 }
 
 :root {
-  --hint-banner-height: 300px;
+  --hint-banner-height: 25vh;
 }
 
 #hint-banner-placeholder {

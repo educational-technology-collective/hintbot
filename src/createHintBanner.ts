@@ -2,10 +2,18 @@ import { NotebookPanel } from '@jupyterlab/notebook';
 import { showReflectionDialog } from './showReflectionDialog';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 
-export const createHintBanner = (
+function fetchHint() {
+  return new Promise<string>(resolve => {
+    setTimeout(() => {
+      resolve('This is a hint.');
+      console.log(1);
+    }, 20000);
+  });
+}
+
+export const createHintBanner = async (
   notebookPanel: NotebookPanel,
   pioneer: IJupyterLabPioneer,
-  hint: string,
   gradeId: string,
   postReflection: boolean
 ) => {
@@ -21,7 +29,17 @@ export const createHintBanner = (
 
   const hintBanner = document.createElement('div');
   hintBanner.id = 'hint-banner';
-  hintBanner.innerText = hint;
+  // hintBanner.innerText = hint;
+  notebookPanel.content.node.parentElement?.insertBefore(
+    hintBanner,
+    notebookPanel.content.node
+  );
+
+  hintBanner.innerText = 'Fetching hint... Please do not refresh the page. \n (It usually takes 1-2 minutes to generate a hint.)';
+
+  const hintContent = await fetchHint();
+
+  hintBanner.innerText = hintContent;
 
   const hintBannerButtonsContainer = document.createElement('div');
   hintBannerButtonsContainer.id = 'hint-banner-buttons-container';
@@ -123,11 +141,6 @@ export const createHintBanner = (
 
   hintBannerButtonsContainer.appendChild(hintBannerButtons);
   hintBanner.appendChild(hintBannerButtonsContainer);
-
-  notebookPanel.content.node.parentElement?.insertBefore(
-    hintBanner,
-    notebookPanel.content.node
-  );
 
   pioneer.exporters.forEach(exporter => {
     pioneer.publishEvent(

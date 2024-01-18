@@ -4,9 +4,6 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { showReflectionDialog } from './showReflectionDialog';
 import { createHintBanner } from './createHintBanner';
-import { requestAPI } from './handler';
-
-// const HINTBOT_API = '';
 
 export const requestHint = async (
   notebookPanel: NotebookPanel,
@@ -52,11 +49,8 @@ export const requestHint = async (
       ]
     });
   } else {
-    // const hint = await requestAPI<any>('hintbot', {
-    //   notebookPanel: notebookPanel.content.model.toJSON(),
-    //   gradeId: gradeId
-    // });
-    const hint = 'This is a hint';
+    createHintBanner(notebookPanel, pioneer, gradeId, postReflection);
+
     if (preReflection) {
       pioneer.exporters.forEach(exporter => {
         pioneer.publishEvent(
@@ -73,9 +67,13 @@ export const requestHint = async (
         );
       });
 
+      document.getElementById('hint-banner').style.filter = 'blur(10px)';
+
       const dialogResult = await showReflectionDialog(
         'Write a brief statement of what the problem is that you are facing and why you think your solution is not working.'
       );
+
+      document.getElementById('hint-banner').style.filter = 'none';
 
       if (dialogResult.button.label === 'Submit') {
         pioneer.exporters.forEach(exporter => {
@@ -93,7 +91,6 @@ export const requestHint = async (
             false
           );
         });
-        createHintBanner(notebookPanel, pioneer, hint, gradeId, postReflection);
       }
       if (dialogResult.button.label === 'Cancel') {
         pioneer.exporters.forEach(exporter => {
@@ -112,8 +109,6 @@ export const requestHint = async (
           );
         });
       }
-    } else {
-      createHintBanner(notebookPanel, pioneer, hint, gradeId, postReflection);
     }
   }
 };

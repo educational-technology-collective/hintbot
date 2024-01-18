@@ -33,6 +33,7 @@ export const showReflectionDialog = (message: string) => {
     buttons: [
       Dialog.createButton({ label: 'Cancel' }),
       Dialog.createButton({ label: 'Submit' })
-    ]
+    ],
+    hasClose: false
   });
 };
