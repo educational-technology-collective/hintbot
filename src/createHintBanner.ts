@@ -1,8 +1,8 @@
 import { NotebookPanel } from '@jupyterlab/notebook';
-import { IDocumentManager } from '@jupyterlab/docmanager';
 import { showReflectionDialog } from './showReflectionDialog';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { ICellModel } from '@jupyterlab/cells';
+import { requestAPI } from './handler';
 
 function fetchHint() {
   return new Promise<string>(resolve => {
@@ -14,7 +14,6 @@ function fetchHint() {
 }
 
 export const createHintBanner = async (
-  docManager: IDocumentManager,
   notebookPanel: NotebookPanel,
   pioneer: IJupyterLabPioneer,
   cell: ICellModel,
@@ -40,83 +39,97 @@ export const createHintBanner = async (
   hintBanner.innerText =
     'Fetching hint... Please do not refresh the page. \n (It usually takes 1-2 minutes to generate a hint.)';
 
-  const hintContent = await fetchHint();
-  hintBanner.innerText = hintContent;
-  cell.setMetadata('remaining_hints', remainingHints - 1);
-  document.getElementById(gradeId).innerText = `Hint (${
-    remainingHints - 1
-  } left)`;
-  docManager.contextForWidget(notebookPanel).save();
-
-  const hintBannerButtonsContainer = document.createElement('div');
-  hintBannerButtonsContainer.id = 'hint-banner-buttons-container';
-
-  const hintBannerButtons = document.createElement('div');
-  hintBannerButtons.id = 'hint-banner-buttons';
-  const helpfulButton = document.createElement('button');
-  helpfulButton.classList.add('hint-banner-button');
-  helpfulButton.innerText = 'Helpful 👍';
-  const unhelpfulButton = document.createElement('button');
-  unhelpfulButton.classList.add('hint-banner-button');
-  unhelpfulButton.innerText = 'Unhelpful 👎';
-
-  const hintBannerButtonClicked = async (evaluation: string) => {
-    pioneer.exporters.forEach(exporter => {
-      pioneer.publishEvent(
-        notebookPanel,
-        {
-          eventName: 'HintEvaluated',
-          eventTime: Date.now(),
-          eventInfo: {
-            gradeId: gradeId,
-            hintContent: hintContent,
-            evaluation: evaluation
-          }
-        },
-        exporter,
-        true
-      );
+  try {
+    const requestBody = {
+      problem_id: gradeId,
+      buggy_notebook_path: notebookPanel.context.path
+    };
+    const response: any = await requestAPI('hint', {
+      method: 'POST',
+      body: JSON.stringify(requestBody)
     });
-    if (postReflection) {
-      const dialogResult = await showReflectionDialog(
-        'Write a brief statement of what you learned from the hint and how you will use it to solve the problem.'
-      );
+    if (response.job_finished && response.feedback) {
+      const hintContent = response.feedback;
+      hintBanner.innerText = hintContent;
+      cell.setMetadata('remaining_hints', remainingHints - 1);
+      document.getElementById(gradeId).innerText = `Hint (${
+        remainingHints - 1
+      } left)`;
+      notebookPanel.context.save();
 
-      if (dialogResult.button.label === 'Submit') {
-        hintBanner.remove();
-        hintBannerPlaceholder.remove();
-      }
+      const hintBannerButtonsContainer = document.createElement('div');
+      hintBannerButtonsContainer.id = 'hint-banner-buttons-container';
 
-      pioneer.exporters.forEach(exporter => {
-        pioneer.publishEvent(
-          notebookPanel,
-          {
-            eventName: 'PostReflection',
-            eventTime: Date.now(),
-            eventInfo: {
-              status: dialogResult.button.label,
-              gradeId: gradeId,
-              reflection: dialogResult.value
-            }
-          },
-          exporter,
-          false
-        );
-      });
-    } else {
-      hintBanner.remove();
-      hintBannerPlaceholder.remove();
+      const hintBannerButtons = document.createElement('div');
+      hintBannerButtons.id = 'hint-banner-buttons';
+      const helpfulButton = document.createElement('button');
+      helpfulButton.classList.add('hint-banner-button');
+      helpfulButton.innerText = 'Helpful 👍';
+      const unhelpfulButton = document.createElement('button');
+      unhelpfulButton.classList.add('hint-banner-button');
+      unhelpfulButton.innerText = 'Unhelpful 👎';
+
+      const hintBannerButtonClicked = async (evaluation: string) => {
+        pioneer.exporters.forEach(exporter => {
+          pioneer.publishEvent(
+            notebookPanel,
+            {
+              eventName: 'HintEvaluated',
+              eventTime: Date.now(),
+              eventInfo: {
+                gradeId: gradeId,
+                hintContent: hintContent,
+                evaluation: evaluation
+              }
+            },
+            exporter,
+            true
+          );
+        });
+        if (postReflection) {
+          const dialogResult = await showReflectionDialog(
+            'Write a brief statement of what you learned from the hint and how you will use it to solve the problem.'
+          );
+
+          if (dialogResult.button.label === 'Submit') {
+            hintBanner.remove();
+            hintBannerPlaceholder.remove();
+          }
+
+          pioneer.exporters.forEach(exporter => {
+            pioneer.publishEvent(
+              notebookPanel,
+              {
+                eventName: 'PostReflection',
+                eventTime: Date.now(),
+                eventInfo: {
+                  status: dialogResult.button.label,
+                  gradeId: gradeId,
+                  reflection: dialogResult.value
+                }
+              },
+              exporter,
+              false
+            );
+          });
+        } else {
+          hintBanner.remove();
+          hintBannerPlaceholder.remove();
+        }
+      };
+      helpfulButton.onclick = () => {
+        hintBannerButtonClicked('helpful');
+      };
+      unhelpfulButton.onclick = () => {
+        hintBannerButtonClicked('unhelpful');
+      };
+      hintBannerButtons.appendChild(helpfulButton);
+      hintBannerButtons.appendChild(unhelpfulButton);
+
+      hintBannerButtonsContainer.appendChild(hintBannerButtons);
+      hintBanner.appendChild(hintBannerButtonsContainer);
     }
-  };
-  helpfulButton.onclick = () => {
-    hintBannerButtonClicked('helpful');
-  };
-  unhelpfulButton.onclick = () => {
-    hintBannerButtonClicked('unhelpful');
-  };
-  hintBannerButtons.appendChild(helpfulButton);
-  hintBannerButtons.appendChild(unhelpfulButton);
-
-  hintBannerButtonsContainer.appendChild(hintBannerButtons);
-  hintBanner.appendChild(hintBannerButtonsContainer);
+  } catch (e) {
+    console.log(e);
+  }
 };

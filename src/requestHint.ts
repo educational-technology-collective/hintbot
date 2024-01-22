@@ -1,6 +1,5 @@
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { NotebookPanel } from '@jupyterlab/notebook';
-import { IDocumentManager } from '@jupyterlab/docmanager';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { showReflectionDialog } from './showReflectionDialog';
@@ -8,7 +7,6 @@ import { createHintBanner } from './createHintBanner';
 import { ICellModel } from '@jupyterlab/cells';
 
 export const requestHint = async (
-  docManager: IDocumentManager,
   notebookPanel: NotebookPanel,
   settings: ISettingRegistry.ISettings,
   pioneer: IJupyterLabPioneer,
@@ -45,7 +43,7 @@ export const requestHint = async (
     const preReflection = settings.get('preReflection').composite as boolean;
     const postReflection = settings.get('postReflection').composite as boolean;
 
-    createHintBanner(docManager, notebookPanel, pioneer, cell, postReflection);
+    createHintBanner(notebookPanel, pioneer, cell, postReflection);
 
     if (preReflection) {
       document.getElementById('hint-banner').style.filter = 'blur(10px)';

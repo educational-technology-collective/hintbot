@@ -4,7 +4,6 @@ import {
 } from '@jupyterlab/application';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
-import { IDocumentManager } from '@jupyterlab/docmanager';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { requestHint } from './requestHint';
 
@@ -12,15 +11,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
   id: 'hintbot:plugin',
   description: 'A JupyterLab extension.',
   autoStart: true,
-  requires: [
-    IDocumentManager,
-    INotebookTracker,
-    ISettingRegistry,
-    IJupyterLabPioneer
-  ],
+  requires: [INotebookTracker, ISettingRegistry, IJupyterLabPioneer],
   activate: async (
     app: JupyterFrontEnd,
-    docManager: IDocumentManager,
     notebookTracker: INotebookTracker,
     settingRegistry: ISettingRegistry,
     pioneer: IJupyterLabPioneer
@@ -48,13 +41,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
               hintButton.classList.add('hint-button');
               hintButton.id = cells.get(i).getMetadata('nbgrader').grade_id;
               hintButton.onclick = () =>
-                requestHint(
-                  docManager,
-                  notebookPanel,
-                  settings,
-                  pioneer,
-                  cells.get(i)
-                );
+                requestHint(notebookPanel, settings, pioneer, cells.get(i));
               notebookPanel.content.widgets[i].node.appendChild(hintButton);
               if (cells.get(i).getMetadata('remaining_hints') === undefined) {
                 cells.get(i).setMetadata('remaining_hints', hintQuantity);
