@@ -36,7 +36,7 @@
   z-index: 10;
   left: 0;
   right: 0;
-  top: 30px;
+  top: 29px;
   width: calc(100% - 32px);
   height: calc(var(--hint-banner-height));
   margin: 0 auto;
