@@ -123,8 +123,8 @@ export const createHintBanner = async (
       unhelpfulButton.onclick = () => {
         hintBannerButtonClicked('unhelpful');
       };
-      hintBannerButtons.appendChild(helpfulButton);
       hintBannerButtons.appendChild(unhelpfulButton);
+      hintBannerButtons.appendChild(helpfulButton);
 
       hintBannerButtonsContainer.appendChild(hintBannerButtons);
       hintBanner.appendChild(hintBannerButtonsContainer);
