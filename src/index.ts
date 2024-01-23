@@ -18,8 +18,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     settingRegistry: ISettingRegistry,
     pioneer: IJupyterLabPioneer
   ) => {
-    console.log('JupyterLab extension hintbot is activated!');
-
     const settings = await settingRegistry.load(plugin.id);
 
     const hintQuantity = settings.get('hintQuantity').composite as number;
@@ -30,12 +28,21 @@ const plugin: JupyterFrontEndPlugin<void> = {
         await pioneer.loadExporters(notebookPanel);
 
         const cells = notebookPanel.content.model?.cells;
-        if (cells) {
+
+        if (
+          cells &&
+          notebookPanel.model.getMetadata('etc_identifier') &&
+          notebookPanel.model.getMetadata('etc_identifier') ===
+            '7ca0093b-b622-4463-8696-65f1e0f33522'
+          // hardcode assignment identifier, to be removed after api service fully implemented
+        ) {
           for (let i = 0; i < cells.length; i++) {
             if (
               cells.get(i).getMetadata('nbgrader') &&
+              cells.get(i).getMetadata('nbgrader')?.cell_type === 'markdown' &&
               cells.get(i).getMetadata('nbgrader')?.grade_id &&
-              cells.get(i).getMetadata('nbgrader')?.cell_type === 'markdown'
+              cells.get(i).getMetadata('nbgrader')?.grade_id !==
+                'cell-018440eg2f1b6a62' // hardcode question identifier, to be removed after notebook updated and deployed
             ) {
               const hintButton = document.createElement('button');
               hintButton.classList.add('hint-button');
