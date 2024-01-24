@@ -37,7 +37,7 @@ export const createHintBanner = async (
   );
 
   hintBanner.innerText =
-    'Fetching hint... Please do not refresh the page. \n (It usually takes 1-2 minutes to generate a hint.)';
+    'Fetching hint... Please do not refresh the page. \n (It usually takes around 2 minutes to generate a hint.)';
 
   try {
     const requestBody = {
