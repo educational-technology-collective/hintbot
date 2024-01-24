@@ -50,6 +50,21 @@
   align-items: center;
 }
 
+#hint-banner-cancel-button {
+  background-color: #1976d2;
+  border: 1px solid #e0e0e0;
+  border-radius: 3px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1.2;
+  margin: 6px;
+  padding: 6px 12px;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
 #hint-banner-buttons-container {
   display: flex;
   width: 90%;

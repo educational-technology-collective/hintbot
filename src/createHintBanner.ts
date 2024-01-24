@@ -1,7 +1,8 @@
 import { NotebookPanel } from '@jupyterlab/notebook';
-import { showReflectionDialog } from './showReflectionDialog';
+import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { ICellModel } from '@jupyterlab/cells';
+import { showReflectionDialog } from './showReflectionDialog';
 import { requestAPI } from './handler';
 
 function fetchHint() {
@@ -39,8 +40,23 @@ export const createHintBanner = async (
   hintBanner.innerText =
     'Fetching hint... Please do not refresh the page. \n (It usually takes around 2 minutes to generate a hint.)';
 
+  const hintBannerCancelButton = document.createElement('div');
+  hintBannerCancelButton.id = 'hint-banner-cancel-button';
+  hintBannerCancelButton.innerText = 'Cancel request';
+  hintBanner.appendChild(hintBannerCancelButton);
+
+  hintBannerCancelButton.onclick = async () => {
+    const response = await requestAPI('hint', { method: 'POST',
+    body: JSON.stringify({resource: 'cancel'})
+   });
+    console.log(response);
+    hintBanner.remove();
+    hintBannerPlaceholder.remove();
+  };
+
   try {
     const requestBody = {
+      resource: 'req',
       problem_id: gradeId,
       buggy_notebook_path: notebookPanel.context.path
     };
@@ -51,6 +67,7 @@ export const createHintBanner = async (
     if (response.job_finished && response.feedback) {
       const hintContent = response.feedback;
       hintBanner.innerText = hintContent;
+      hintBannerCancelButton.remove();
       cell.setMetadata('remaining_hints', remainingHints - 1);
       document.getElementById(gradeId).innerText = `Hint (${
         remainingHints - 1
@@ -128,8 +145,31 @@ export const createHintBanner = async (
 
       hintBannerButtonsContainer.appendChild(hintBannerButtons);
       hintBanner.appendChild(hintBannerButtonsContainer);
+    } else {
+      hintBanner.remove();
+      hintBannerPlaceholder.remove();
+      showDialog({
+        title: 'Hint Request Error. Please try again later',
+        buttons: [
+          Dialog.createButton({
+            label: 'Dismiss',
+            className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
+          })
+        ]
+      });
     }
   } catch (e) {
     console.log(e);
+    hintBanner.remove();
+    hintBannerPlaceholder.remove();
+    showDialog({
+      title: 'Hint Request Error. Please try again later',
+      buttons: [
+        Dialog.createButton({
+          label: 'Dismiss',
+          className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
+        })
+      ]
+    });
   }
 };
