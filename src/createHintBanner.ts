@@ -5,15 +5,6 @@ import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { showReflectionDialog } from './showReflectionDialog';
 import { requestAPI } from './handler';
 
-// function fetchHint() {
-//   return new Promise<string>(resolve => {
-//     setTimeout(() => {
-//       resolve('This is a hint.');
-//       console.log(1);
-//     }, 20000);
-//   });
-// }
-
 export const createHintBanner = async (
   notebookPanel: NotebookPanel,
   pioneer: IJupyterLabPioneer,
@@ -37,8 +28,8 @@ export const createHintBanner = async (
     notebookPanel.content.node
   );
 
-  hintBanner.innerText =
-    'Retrieving hint... Please do not refresh the page. \n \n (It usually takes around 2 minutes to generate a hint. \n You may continue to work on the assignment in the meantime)';
+  hintBanner.innerHTML =
+    '<p><span class="loader"></span>Retrieving hint... Please do not refresh the page.</p> <p>It usually takes around 2 minutes to generate a hint. You may continue to work on the assignment in the meantime</p>';
 
   try {
     const requestBody = {
