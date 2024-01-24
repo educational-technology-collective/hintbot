@@ -57,11 +57,6 @@ class RouteHandler(APIHandler):
                 self.finish(response.json())
                 return
 
-        self.finish(json.dumps({
-            "feedback": "job failed"
-        }))
-
-
 def setup_handlers(web_app):
     host_pattern = ".*$"
 

@@ -1,7 +1,8 @@
 import { NotebookPanel } from '@jupyterlab/notebook';
-import { showReflectionDialog } from './showReflectionDialog';
-import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
+import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { ICellModel } from '@jupyterlab/cells';
+import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
+import { showReflectionDialog } from './showReflectionDialog';
 import { requestAPI } from './handler';
 
 function fetchHint() {
@@ -128,8 +129,31 @@ export const createHintBanner = async (
 
       hintBannerButtonsContainer.appendChild(hintBannerButtons);
       hintBanner.appendChild(hintBannerButtonsContainer);
+    } else {
+      hintBanner.remove();
+      hintBannerPlaceholder.remove();
+      showDialog({
+        title: 'Hint Request Error. Please try again later',
+        buttons: [
+          Dialog.createButton({
+            label: 'Dismiss',
+            className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
+          })
+        ]
+      });
     }
   } catch (e) {
     console.log(e);
+    hintBanner.remove();
+    hintBannerPlaceholder.remove();
+    showDialog({
+      title: 'Hint Request Error. Please try again later',
+      buttons: [
+        Dialog.createButton({
+          label: 'Dismiss',
+          className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
+        })
+      ]
+    });
   }
 };
