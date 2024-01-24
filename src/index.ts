@@ -89,7 +89,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
             ],
             hasClose: false
           });
-          if (dialogResult.button.label == 'Confirm activation') {
+          if (dialogResult.button.label === 'Confirm activation') {
             await activateHintBot(notebookPanel, settings, pioneer);
             activationButton.remove();
 
