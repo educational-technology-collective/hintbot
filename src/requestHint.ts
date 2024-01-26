@@ -5,6 +5,7 @@ import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { showReflectionDialog } from './showReflectionDialog';
 import { createHintBanner } from './createHintBanner';
 import { ICellModel } from '@jupyterlab/cells';
+import { requestAPI } from './handler';
 
 export const requestHint = async (
   notebookPanel: NotebookPanel,
@@ -15,10 +16,7 @@ export const requestHint = async (
   const gradeId = cell.getMetadata('nbgrader')?.grade_id;
   const remainingHints = cell.getMetadata('remaining_hints');
 
-  let status = 'HintRequested';
-
   if (document.getElementById('hint-banner')) {
-    status = 'HintAlreadyExists';
     showDialog({
       title: 'Please review previous hint first',
       buttons: [
@@ -28,8 +26,21 @@ export const requestHint = async (
         })
       ]
     });
+    pioneer.exporters.forEach(exporter => {
+      pioneer.publishEvent(
+        notebookPanel,
+        {
+          eventName: 'HintAlreadyExists',
+          eventTime: Date.now(),
+          eventInfo: {
+            gradeId: gradeId
+          }
+        },
+        exporter,
+        false
+      );
+    });
   } else if (remainingHints < 1) {
-    status = 'NotEnoughHint';
     showDialog({
       title: 'No hint left',
       buttons: [
@@ -38,6 +49,20 @@ export const requestHint = async (
           className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
         })
       ]
+    });
+    pioneer.exporters.forEach(exporter => {
+      pioneer.publishEvent(
+        notebookPanel,
+        {
+          eventName: 'NotEnoughHint',
+          eventTime: Date.now(),
+          eventInfo: {
+            gradeId: gradeId
+          }
+        },
+        exporter,
+        false
+      );
     });
   } else {
     const preReflection = settings.get('preReflection').composite as boolean;
@@ -51,7 +76,6 @@ export const requestHint = async (
       const dialogResult = await showReflectionDialog(
         'Write a brief statement of what the problem is that you are facing and why you think your solution is not working.'
       );
-
       document.getElementById('hint-banner').style.filter = 'none';
 
       pioneer.exporters.forEach(exporter => {
@@ -70,22 +94,15 @@ export const requestHint = async (
           false
         );
       });
+      if (dialogResult.button.label === 'Cancel') {
+        await requestAPI('hint', {
+          method: 'POST',
+          body: JSON.stringify({
+            resource: 'cancel',
+            problem_id: gradeId
+          })
+        });
+      }
     }
   }
-
-  pioneer.exporters.forEach(exporter => {
-    pioneer.publishEvent(
-      notebookPanel,
-      {
-        eventName: 'HintRequested',
-        eventTime: Date.now(),
-        eventInfo: {
-          status: status,
-          gradeId: gradeId
-        }
-      },
-      exporter,
-      false
-    );
-  });
 };

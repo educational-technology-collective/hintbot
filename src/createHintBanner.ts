@@ -31,18 +31,49 @@ export const createHintBanner = async (
   hintBanner.innerHTML =
     '<p><span class="loader"></span>Retrieving hint... Please do not refresh the page.</p> <p>It usually takes around 2 minutes to generate a hint. You may continue to work on the assignment in the meantime</p>';
 
+  const hintBannerCancelButton = document.createElement('div');
+  hintBannerCancelButton.id = 'hint-banner-cancel-button';
+  hintBannerCancelButton.innerText = 'Cancel request';
+  hintBanner.appendChild(hintBannerCancelButton);
+
+  hintBannerCancelButton.onclick = async () => {
+    await requestAPI('hint', {
+      method: 'POST',
+      body: JSON.stringify({
+        resource: 'cancel',
+        problem_id: gradeId
+      })
+    });
+  };
+
   try {
-    const requestBody = {
-      problem_id: gradeId,
-      buggy_notebook_path: notebookPanel.context.path
-    };
     const response: any = await requestAPI('hint', {
       method: 'POST',
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify({
+        resource: 'req',
+        problem_id: gradeId,
+        buggy_notebook_path: notebookPanel.context.path
+      })
     });
+    const hintContent = response.feedback;
     if (response.job_finished && response.feedback) {
-      const hintContent = response.feedback;
+      pioneer.exporters.forEach(exporter => {
+        pioneer.publishEvent(
+          notebookPanel,
+          {
+            eventName: 'HintRequestCompleted',
+            eventTime: Date.now(),
+            eventInfo: {
+              hintContent: hintContent,
+              gradeId: gradeId
+            }
+          },
+          exporter,
+          false
+        );
+      });
       hintBanner.innerText = hintContent;
+      hintBannerCancelButton.remove();
       cell.setMetadata('remaining_hints', remainingHints - 1);
       document.getElementById(gradeId).innerText = `Hint (${
         remainingHints - 1
@@ -120,6 +151,32 @@ export const createHintBanner = async (
 
       hintBannerButtonsContainer.appendChild(hintBannerButtons);
       hintBanner.appendChild(hintBannerButtonsContainer);
+    } else if (!response.job_finished && response.feedback === 'cancelled') {
+      hintBanner.remove();
+      hintBannerPlaceholder.remove();
+      showDialog({
+        title: 'Hint Request Cancelled',
+        buttons: [
+          Dialog.createButton({
+            label: 'Dismiss',
+            className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
+          })
+        ]
+      });
+      pioneer.exporters.forEach(exporter => {
+        pioneer.publishEvent(
+          notebookPanel,
+          {
+            eventName: 'HintRequestCancelled',
+            eventTime: Date.now(),
+            eventInfo: {
+              gradeId: gradeId
+            }
+          },
+          exporter,
+          false
+        );
+      });
     } else {
       hintBanner.remove();
       hintBannerPlaceholder.remove();
@@ -131,6 +188,20 @@ export const createHintBanner = async (
             className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
           })
         ]
+      });
+      pioneer.exporters.forEach(exporter => {
+        pioneer.publishEvent(
+          notebookPanel,
+          {
+            eventName: 'HintRequestError',
+            eventTime: Date.now(),
+            eventInfo: {
+              gradeId: gradeId
+            }
+          },
+          exporter,
+          false
+        );
       });
     }
   } catch (e) {
@@ -145,6 +216,20 @@ export const createHintBanner = async (
           className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
         })
       ]
+    });
+    pioneer.exporters.forEach(exporter => {
+      pioneer.publishEvent(
+        notebookPanel,
+        {
+          eventName: 'HintRequestError',
+          eventTime: Date.now(),
+          eventInfo: {
+            gradeId: gradeId
+          }
+        },
+        exporter,
+        false
+      );
     });
   }
 };
