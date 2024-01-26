@@ -1,18 +1,9 @@
 import { NotebookPanel } from '@jupyterlab/notebook';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
-import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { ICellModel } from '@jupyterlab/cells';
+import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { showReflectionDialog } from './showReflectionDialog';
 import { requestAPI } from './handler';
-
-function fetchHint() {
-  return new Promise<string>(resolve => {
-    setTimeout(() => {
-      resolve('This is a hint.');
-      console.log(1);
-    }, 20000);
-  });
-}
 
 export const createHintBanner = async (
   notebookPanel: NotebookPanel,
@@ -37,8 +28,8 @@ export const createHintBanner = async (
     notebookPanel.content.node
   );
 
-  hintBanner.innerText =
-    'Fetching hint... Please do not refresh the page. \n (It usually takes around 2 minutes to generate a hint.)';
+  hintBanner.innerHTML =
+    '<p><span class="loader"></span>Retrieving hint... Please do not refresh the page.</p> <p>It usually takes around 2 minutes to generate a hint. You may continue to work on the assignment in the meantime</p>';
 
   const hintBannerCancelButton = document.createElement('div');
   hintBannerCancelButton.id = 'hint-banner-cancel-button';

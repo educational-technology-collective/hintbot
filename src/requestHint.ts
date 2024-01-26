@@ -77,7 +77,7 @@ export const requestHint = async (
     pioneer.publishEvent(
       notebookPanel,
       {
-        eventName: 'HintRequest',
+        eventName: 'HintRequested',
         eventTime: Date.now(),
         eventInfo: {
           status: status,
