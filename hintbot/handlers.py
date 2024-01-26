@@ -1,89 +1,50 @@
 import json
-
+import time
+import os
+import requests
+import tornado
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
-import tornado
 
-import time
-from pathlib import Path
-import requests
-import os
 
-host_url = "https://gpt-hints-api-202402-3d06c421464e.herokuapp.com/feedback_generation/query/"
+HOST_URL = "https://gpt-hints-api-202402-3d06c421464e.herokuapp.com/feedback_generation/query/"
 
 class Job():
 
-    def __init__(self, run_sec):
-        self.run_sec = int(run_sec)
-        self.start_time = None
-        self.end_time = None
+    def __init__(self, time_limit):
+        self._time_limit = int(time_limit)
+        self._timer = 0
         self._cancelled = False
 
     @tornado.gen.coroutine
     def run(self, request_id):
-        """ Some job
-
-        The job is simple: sleep for a given number of seconds.
-        It could be implemented as:
-             yield gen.sleep(self.run_sec)
-        but this way makes it not cancellable, so
-        it is divided: run 1s sleep, run_sec times 
-        """
-        self.start_time = time.time()
-        deadline = self.start_time + self.run_sec
-        while time.time() < deadline:
+        while self._timer < self._time_limit:
             if self._cancelled:
                 print("Job cancelled")
-                return
- 
-            yield tornado.gen.sleep(10)
-            response = requests.get(
-                host_url,
-                params={"request_id": request_id},
-            )
+                return { "job_finished": False, "feedback": "cancelled" }
+            yield tornado.gen.sleep(1)
+            self._timer += 1
 
-            print(response.json(), time.time())
+            if self._timer % 10 == 0:
+                response = requests.get(
+                    HOST_URL,
+                    params={"request_id": request_id},
+                    timeout=10
+                )
 
-            if (response.status_code != 200):
-                break
+                print(response.json(), time.time())
 
-            if response.json()["job_finished"]:
-                print(f"Received feedback: {response.json()}")
-                return response.json()
+                if response.status_code != 200:
+                    break
 
-        self.end_time = time.time()
-        print("Time out, job failed")
-        return "Time out, job failed"
+                if response.json()["job_finished"]:
+                    print(f"Received feedback: {response.json()}")
+                    return response.json()
+
+        return {"job_finished": False, "feedback": ""}
 
     def cancel(self):
-        """ Cancels job
-
-        Returns None on success,
-        raises Exception on error:
-        if job is already cancelled or done
-        """
-        if self._cancelled:
-            raise Exception('Job is already cancelled')
-        if self.end_time is not None:
-            raise Exception('Job is already done')
         self._cancelled = True
-
-    def get_state(self):
-        if self._cancelled:
-            if self.end_time is None:
-                # job might be running still
-                # and will be stopped on the next while check
-                return 'CANCELING'
-            else:
-                return 'CANCELLED'
-        elif self.end_time is None:
-            return 'RUNNING'
-        elif self.start_time is None:
-            # actually this never will shown
-            # as after creation, job is immediately started
-            return 'NOT STARTED'
-        else:
-            return 'DONE'
 
 
 class RouteHandler(APIHandler):
@@ -91,40 +52,40 @@ class RouteHandler(APIHandler):
     # patch, put, delete, options) to ensure only authorized user can request the
     # Jupyter server
     @tornado.web.authenticated
-    def post(self):
+    async def post(self):
         body = json.loads(self.request.body)
         if body.get("resource") == "req":
             student_id = os.getenv('WORKSPACE_ID')
             problem_id = body.get('problem_id')
             buggy_notebook_path = body.get('buggy_notebook_path')
-            print(student_id, problem_id, buggy_notebook_path)
             response = requests.post(
-                host_url,
+                HOST_URL,
                 data={
                     "student_id": student_id,
                     "problem_id": problem_id,
                 },
                 files={"file": ("notebook.ipynb", open(buggy_notebook_path, "rb"))},
+                timeout=10
             )
 
             if response.status_code != 200:
-                return 'Hint Request Error'
+                self.write({"job_finished": False, "feedback": "error"})
+                return
 
             print(f"Received ticket: {response.json()}")
-
-            # Periodically check the status of the ticket and receive the feedback when the job is finished
             print("Waiting for the hint to be generated...")
-            request_id = response.json()["request_id"]
-
             job = Job(240)
-            self.application.jobs[request_id] = job
-            self.write('Retrieving hint')
-            res = job.run(request_id)
+            self.application.jobs[problem_id] = job
+            res = await job.run(response.json()["request_id"])
 
-            print("Job Result", res)
-        elif body.get("resource") == 'cancel':
-            self.application.jobs[request_id].cancel()
-            self.write('Hint request Cancelled')
+            self.write(res)
+            return
+
+        if body.get("resource") == 'cancel':
+            problem_id = body.get('problem_id')
+            self.application.jobs[problem_id].cancel()
+            self.write({"job_finished": False, "feedback": "cancelled"})
+            return
 
 
 def setup_handlers(web_app):
