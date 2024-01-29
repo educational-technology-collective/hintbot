@@ -12,7 +12,7 @@ export const createHintBanner = async (
   postReflection: boolean
 ) => {
   const gradeId = cell.getMetadata('nbgrader').grade_id;
-  const remainingHints = cell.getMetadata('remaining_hints');
+  // const remainingHints = cell.getMetadata('remaining_hints');
 
   const hintBannerPlaceholder = document.createElement('div');
   hintBannerPlaceholder.id = 'hint-banner-placeholder';
@@ -69,16 +69,16 @@ export const createHintBanner = async (
             }
           },
           exporter,
-          false
+          true
         );
       });
       hintBanner.innerText = hintContent;
       hintBannerCancelButton.remove();
-      cell.setMetadata('remaining_hints', remainingHints - 1);
-      document.getElementById(gradeId).innerText = `Hint (${
-        remainingHints - 1
-      } left)`;
-      notebookPanel.context.save();
+      // cell.setMetadata('remaining_hints', remainingHints - 1);
+      // document.getElementById(gradeId).innerText = `Hint (${
+      //   remainingHints - 1
+      // } left)`;
+      // notebookPanel.context.save();
 
       const hintBannerButtonsContainer = document.createElement('div');
       hintBannerButtonsContainer.id = 'hint-banner-buttons-container';
@@ -128,11 +128,12 @@ export const createHintBanner = async (
                 eventInfo: {
                   status: dialogResult.button.label,
                   gradeId: gradeId,
+                  hintContent: hintContent,
                   reflection: dialogResult.value
                 }
               },
               exporter,
-              false
+              true
             );
           });
         } else {

@@ -70,6 +70,12 @@ export const requestHint = async (
 
     createHintBanner(notebookPanel, pioneer, cell, postReflection);
 
+    cell.setMetadata('remaining_hints', remainingHints - 1);
+    document.getElementById(gradeId).innerText = `Hint (${
+      remainingHints - 1
+    } left)`;
+    notebookPanel.context.save();
+
     if (preReflection) {
       document.getElementById('hint-banner').style.filter = 'blur(10px)';
 
@@ -91,7 +97,7 @@ export const requestHint = async (
             }
           },
           exporter,
-          false
+          true
         );
       });
       if (dialogResult.button.label === 'Cancel') {
