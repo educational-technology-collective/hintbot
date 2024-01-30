@@ -8,7 +8,7 @@
       "type": "boolean",
       "title": "Pre-Reflection",
       "description": "Enable pre-reflection or not",
-      "default": false
+      "default": true
     },
     "postReflection": {
       "type": "boolean",
@@ -20,7 +20,7 @@
       "type": "number",
       "title": "Hint Quantity (per question)",
       "description": "The number of hints allowed for each question",
-      "default": 3
+      "default": 5
     }
   },
   "additionalProperties": false

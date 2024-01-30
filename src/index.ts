@@ -40,11 +40,11 @@ const activateHintBot = async (
         notebookPanel.content.widgets[i].node.appendChild(hintButton);
         if (cells.get(i).getMetadata('remaining_hints') === undefined) {
           cells.get(i).setMetadata('remaining_hints', hintQuantity);
-          hintButton.innerText = `Hint (${hintQuantity} left)`;
+          hintButton.innerText = `Hint (${hintQuantity} left for this question)`;
         } else {
           hintButton.innerText = `Hint (${cells
             .get(i)
-            .getMetadata('remaining_hints')} left)`;
+            .getMetadata('remaining_hints')} left for this question)`;
         }
       }
     }

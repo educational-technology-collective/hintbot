@@ -18,7 +18,7 @@ export const requestHint = async (
 
   if (document.getElementById('hint-banner')) {
     showDialog({
-      title: 'Please review previous hint first',
+      title: 'Please review previous hint first.',
       buttons: [
         Dialog.createButton({
           label: 'Dismiss',
@@ -42,7 +42,7 @@ export const requestHint = async (
     });
   } else if (remainingHints < 1) {
     showDialog({
-      title: 'No hint left',
+      title: 'No hint left for this question.',
       buttons: [
         Dialog.createButton({
           label: 'Dismiss',
@@ -73,7 +73,7 @@ export const requestHint = async (
     cell.setMetadata('remaining_hints', remainingHints - 1);
     document.getElementById(gradeId).innerText = `Hint (${
       remainingHints - 1
-    } left)`;
+    } left for this question)`;
     notebookPanel.context.save();
 
     if (preReflection) {

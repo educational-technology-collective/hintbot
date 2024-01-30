@@ -29,7 +29,7 @@ export const createHintBanner = async (
   );
 
   hintBanner.innerHTML =
-    '<p><span class="loader"></span>Retrieving hint... Please do not refresh the page.</p> <p>It usually takes around 2 minutes to generate a hint. You may continue to work on the assignment in the meantime</p>';
+    '<p><span class="loader"></span>Retrieving hint... Please do not refresh the page.</p> <p>It usually takes around 2 minutes to generate a hint. You may continue to work on the assignment in the meantime.</p>';
 
   const hintBannerCancelButton = document.createElement('div');
   hintBannerCancelButton.id = 'hint-banner-cancel-button';
@@ -77,7 +77,7 @@ export const createHintBanner = async (
       // cell.setMetadata('remaining_hints', remainingHints - 1);
       // document.getElementById(gradeId).innerText = `Hint (${
       //   remainingHints - 1
-      // } left)`;
+      // } left for this question)`;
       // notebookPanel.context.save();
 
       const hintBannerButtonsContainer = document.createElement('div');
