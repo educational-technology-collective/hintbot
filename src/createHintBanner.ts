@@ -197,7 +197,7 @@ export const createHintBanner = async (
     Cancelled: 2,
     Error: 3
   };
-  
+
   try {
     const response: any = await requestAPI('hint', {
       method: 'POST',
@@ -211,7 +211,7 @@ export const createHintBanner = async (
     if (!requestId) {
       throw new Error('Unable to create ticket');
     } else {
-      let intervalId = setInterval(async () => {
+      const intervalId = setInterval(async () => {
         const response: any = await requestAPI('check', {
           method: 'POST',
           body: JSON.stringify({

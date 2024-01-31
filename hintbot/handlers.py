@@ -1,9 +1,7 @@
 import json
-import time
 import os
 import requests
 import tornado
-from enum import Enum
 from jupyter_server.base.handlers import JupyterHandler
 from jupyter_server.extension.handler import ExtensionHandlerMixin
 
@@ -21,9 +19,7 @@ class Job():
     def __init__(self, time_limit, request_id):
         self._time_limit = int(time_limit)
         self._timer = 0
-        
         self._request_id = request_id
-        
         self.status = STATUS["Loading"]
         self.result = None
 
@@ -33,7 +29,7 @@ class Job():
             if self.status == STATUS["Cancelled"]:
                 print('Cancelled')
                 return
-            
+
             yield tornado.gen.sleep(1)
             self._timer += 1
 
@@ -50,7 +46,7 @@ class Job():
                     self.status = STATUS["Error"]
                     return
 
-                elif response.json()["job_finished"]:
+                if response.json()["job_finished"]:
                     print("Success")
                     self.result = response.json()
                     self.status = STATUS["Success"]
@@ -65,21 +61,6 @@ class Job():
 class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-    @tornado.web.authenticated
-    def get(self, resource):
-        try:
-            self.set_header("Content-Type", "application/json")
-            if resource == "version":
-                self.finish(json.dumps(__version__))
-            elif resource == "environ":
-                self.finish(json.dumps(dict(os.environ.items())))
-            else:
-                self.set_status(404)
-        except Exception as e:
-            self.log.error(str(e))
-            self.set_status(500)
-            self.finish(json.dumps(str(e)))
 
     @tornado.web.authenticated
     async def post(self, resource):
@@ -102,11 +83,11 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                 if response.status_code == 200:
                     request_id = response.json()["request_id"]
                     print(f"Received ticket: {request_id}, waiting for the hint to be generated...")
-                    
+
                     newjob = Job(time_limit=240, request_id=request_id)
                     newjob.run()
                     self.extensionapp.jobs[problem_id] = newjob
-                    
+
                     self.write(json.dumps(response.json()))
                 else:
                     self.write("request ticket error")
