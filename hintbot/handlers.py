@@ -3,47 +3,64 @@ import time
 import os
 import requests
 import tornado
+from enum import Enum
 from jupyter_server.base.handlers import JupyterHandler
 from jupyter_server.extension.handler import ExtensionHandlerMixin
 
 HOST_URL = "https://gpt-hints-api-202402-3d06c421464e.herokuapp.com/feedback_generation/query/"
 
+STATUS = {
+    "Loading": 0,
+    "Success": 1,
+    "Cancelled": 2,
+    "Error": 3
+}
+
 class Job():
 
-    def __init__(self, time_limit):
+    def __init__(self, time_limit, request_id):
         self._time_limit = int(time_limit)
         self._timer = 0
-        self._cancelled = False
+        
+        self._request_id = request_id
+        
+        self.status = STATUS["Loading"]
+        self.result = None
 
     @tornado.gen.coroutine
-    def run(self, request_id):
+    def run(self):
         while self._timer < self._time_limit:
-            if self._cancelled:
-                print("Job cancelled")
-                return { "job_finished": False, "feedback": "cancelled" }
+            if self.status == STATUS["Cancelled"]:
+                print('Cancelled')
+                return
+            
             yield tornado.gen.sleep(1)
             self._timer += 1
 
             if self._timer % 10 == 0:
                 response = requests.get(
                     HOST_URL,
-                    params={"request_id": request_id},
+                    params={"request_id": self._request_id},
                     timeout=10
                 )
-
-                print(response.json(), time.time())
+                print(response.json(), self._timer)
 
                 if response.status_code != 200:
-                    break
+                    print("Error")
+                    self.status = STATUS["Error"]
+                    return
 
-                if response.json()["job_finished"]:
-                    print(f"Received feedback: {response.json()}")
-                    return response.json()
+                elif response.json()["job_finished"]:
+                    print("Success")
+                    self.result = response.json()
+                    self.status = STATUS["Success"]
+                    return
 
-        return {"job_finished": False, "feedback": ""}
+        print("Timeout")
+        self.status = STATUS["Error"] # Timeout
 
     def cancel(self):
-        self._cancelled = True
+        self.status = STATUS["Cancelled"]
 
 class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
     def __init__(self, *args, **kwargs):
@@ -82,23 +99,31 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                     timeout=10
                 )
 
-                if response.status_code != 200:
-                    self.write({"job_finished": False, "feedback": "error"})
-                    return
+                if response.status_code == 200:
+                    request_id = response.json()["request_id"]
+                    print(f"Received ticket: {request_id}, waiting for the hint to be generated...")
+                    
+                    newjob = Job(time_limit=240, request_id=request_id)
+                    newjob.run()
+                    self.extensionapp.jobs[problem_id] = newjob
+                    
+                    self.write(json.dumps(response.json()))
+                else:
+                    self.write("request ticket error")
 
-                print(f"Received ticket: {response.json()}")
-                print("Waiting for the hint to be generated...")
-                job = Job(240)
-                self.extensionapp.jobs[problem_id] = job
-                res = await job.run(response.json()["request_id"])
-                del self.extensionapp.jobs[problem_id]
-                self.finish(json.dumps(res))
-                
+            elif resource == "check":
+                problem_id = body.get('problem_id')
+                self.write({
+                    "status": self.extensionapp.jobs.get(problem_id).status,
+                    "result": self.extensionapp.jobs.get(problem_id).result
+                })
+                if self.extensionapp.jobs.get(problem_id).status != STATUS["Loading"]:
+                    del self.extensionapp.jobs[problem_id]
+
             elif resource == "cancel":
                 problem_id = body.get('problem_id')
                 self.extensionapp.jobs[problem_id].cancel()
-                del self.extensionapp.jobs[problem_id]
-                self.write({"job_finished": False, "feedback": "cancelled"}) 
+
             else:
                 self.set_status(404)
 

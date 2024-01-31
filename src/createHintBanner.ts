@@ -5,6 +5,13 @@ import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { showReflectionDialog } from './showReflectionDialog';
 import { requestAPI } from './handler';
 
+const STATUS = {
+  Loading: 0,
+  Success: 1,
+  Cancelled: 2,
+  Error: 3
+};
+
 export const createHintBanner = async (
   notebookPanel: NotebookPanel,
   pioneer: IJupyterLabPioneer,
@@ -52,150 +59,149 @@ export const createHintBanner = async (
         buggy_notebook_path: notebookPanel.context.path
       })
     });
-    const hintContent = response.feedback;
-    if (response.job_finished && response.feedback) {
-      pioneer.exporters.forEach(exporter => {
-        pioneer.publishEvent(
-          notebookPanel,
-          {
-            eventName: 'HintRequestCompleted',
-            eventTime: Date.now(),
-            eventInfo: {
-              hintContent: hintContent,
-              gradeId: gradeId
-            }
-          },
-          exporter,
-          true
-        );
-      });
-      hintBanner.innerText = hintContent;
-      hintBannerCancelButton.remove();
-
-      const hintBannerButtonsContainer = document.createElement('div');
-      hintBannerButtonsContainer.id = 'hint-banner-buttons-container';
-
-      const hintBannerButtons = document.createElement('div');
-      hintBannerButtons.id = 'hint-banner-buttons';
-      const helpfulButton = document.createElement('button');
-      helpfulButton.classList.add('hint-banner-button');
-      helpfulButton.innerText = 'Helpful 👍';
-      const unhelpfulButton = document.createElement('button');
-      unhelpfulButton.classList.add('hint-banner-button');
-      unhelpfulButton.innerText = 'Unhelpful 👎';
-
-      const hintBannerButtonClicked = async (evaluation: string) => {
-        pioneer.exporters.forEach(exporter => {
-          pioneer.publishEvent(
-            notebookPanel,
-            {
-              eventName: 'HintEvaluated',
-              eventTime: Date.now(),
-              eventInfo: {
-                gradeId: gradeId,
-                hintContent: hintContent,
-                evaluation: evaluation
-              }
-            },
-            exporter,
-            true
-          );
+    console.log("create ticket", response)
+    const requestId = response?.request_id;
+    if (!requestId) {
+      throw new Error('Unable to create ticket');
+    } else {
+      let intervalId = setInterval(async () => {
+        const response: any = await requestAPI('check', {
+          method: 'POST',
+          body: JSON.stringify({
+            problem_id: gradeId
+          })
         });
-        if (postReflection) {
-          const dialogResult = await showReflectionDialog(
-            'Write a brief statement of what you learned from the hint and how you will use it to solve the problem.'
-          );
-
-          if (dialogResult.button.label === 'Submit') {
-            hintBanner.remove();
-            hintBannerPlaceholder.remove();
-          }
-
+        if (response.status === STATUS['Loading']) {
+          console.log('loading');
+          return;
+        } else if (response.status === STATUS['Success']) {
+          clearInterval(intervalId);
+          console.log('success');
+          const hintContent = response.result.feedback;
           pioneer.exporters.forEach(exporter => {
             pioneer.publishEvent(
               notebookPanel,
               {
-                eventName: 'PostReflection',
+                eventName: 'HintRequestCompleted',
                 eventTime: Date.now(),
                 eventInfo: {
-                  status: dialogResult.button.label,
-                  gradeId: gradeId,
                   hintContent: hintContent,
-                  reflection: dialogResult.value
+                  gradeId: gradeId
                 }
               },
               exporter,
               true
             );
           });
-        } else {
+          hintBanner.innerText = hintContent;
+          hintBannerCancelButton.remove();
+
+          const hintBannerButtonsContainer = document.createElement('div');
+          hintBannerButtonsContainer.id = 'hint-banner-buttons-container';
+
+          const hintBannerButtons = document.createElement('div');
+          hintBannerButtons.id = 'hint-banner-buttons';
+          const helpfulButton = document.createElement('button');
+          helpfulButton.classList.add('hint-banner-button');
+          helpfulButton.innerText = 'Helpful 👍';
+          const unhelpfulButton = document.createElement('button');
+          unhelpfulButton.classList.add('hint-banner-button');
+          unhelpfulButton.innerText = 'Unhelpful 👎';
+
+          const hintBannerButtonClicked = async (evaluation: string) => {
+            pioneer.exporters.forEach(exporter => {
+              pioneer.publishEvent(
+                notebookPanel,
+                {
+                  eventName: 'HintEvaluated',
+                  eventTime: Date.now(),
+                  eventInfo: {
+                    gradeId: gradeId,
+                    hintContent: hintContent,
+                    evaluation: evaluation
+                  }
+                },
+                exporter,
+                true
+              );
+            });
+            if (postReflection) {
+              const dialogResult = await showReflectionDialog(
+                'Write a brief statement of what you learned from the hint and how you will use it to solve the problem.'
+              );
+
+              if (dialogResult.button.label === 'Submit') {
+                hintBanner.remove();
+                hintBannerPlaceholder.remove();
+              }
+
+              pioneer.exporters.forEach(exporter => {
+                pioneer.publishEvent(
+                  notebookPanel,
+                  {
+                    eventName: 'PostReflection',
+                    eventTime: Date.now(),
+                    eventInfo: {
+                      status: dialogResult.button.label,
+                      gradeId: gradeId,
+                      hintContent: hintContent,
+                      reflection: dialogResult.value
+                    }
+                  },
+                  exporter,
+                  true
+                );
+              });
+            } else {
+              hintBanner.remove();
+              hintBannerPlaceholder.remove();
+            }
+          };
+          helpfulButton.onclick = () => {
+            hintBannerButtonClicked('helpful');
+          };
+          unhelpfulButton.onclick = () => {
+            hintBannerButtonClicked('unhelpful');
+          };
+          hintBannerButtons.appendChild(unhelpfulButton);
+          hintBannerButtons.appendChild(helpfulButton);
+
+          hintBannerButtonsContainer.appendChild(hintBannerButtons);
+          hintBanner.appendChild(hintBannerButtonsContainer);
+        } else if (response.status === STATUS['Cancelled']) {
+          clearInterval(intervalId);
+          console.log('cancelled');
           hintBanner.remove();
           hintBannerPlaceholder.remove();
+          showDialog({
+            title: 'Hint Request Cancelled',
+            buttons: [
+              Dialog.createButton({
+                label: 'Dismiss',
+                className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
+              })
+            ]
+          });
+          pioneer.exporters.forEach(exporter => {
+            pioneer.publishEvent(
+              notebookPanel,
+              {
+                eventName: 'HintRequestCancelled',
+                eventTime: Date.now(),
+                eventInfo: {
+                  gradeId: gradeId
+                }
+              },
+              exporter,
+              false
+            );
+          });
+        } else {
+          clearInterval(intervalId);
+          console.log('error');
+          throw new Error('Unable to retrieve hint');
         }
-      };
-      helpfulButton.onclick = () => {
-        hintBannerButtonClicked('helpful');
-      };
-      unhelpfulButton.onclick = () => {
-        hintBannerButtonClicked('unhelpful');
-      };
-      hintBannerButtons.appendChild(unhelpfulButton);
-      hintBannerButtons.appendChild(helpfulButton);
-
-      hintBannerButtonsContainer.appendChild(hintBannerButtons);
-      hintBanner.appendChild(hintBannerButtonsContainer);
-    } else if (!response.job_finished && response.feedback === 'cancelled') {
-      hintBanner.remove();
-      hintBannerPlaceholder.remove();
-      showDialog({
-        title: 'Hint Request Cancelled',
-        buttons: [
-          Dialog.createButton({
-            label: 'Dismiss',
-            className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
-          })
-        ]
-      });
-      pioneer.exporters.forEach(exporter => {
-        pioneer.publishEvent(
-          notebookPanel,
-          {
-            eventName: 'HintRequestCancelled',
-            eventTime: Date.now(),
-            eventInfo: {
-              gradeId: gradeId
-            }
-          },
-          exporter,
-          false
-        );
-      });
-    } else {
-      hintBanner.remove();
-      hintBannerPlaceholder.remove();
-      showDialog({
-        title: 'Hint Request Error. Please try again later',
-        buttons: [
-          Dialog.createButton({
-            label: 'Dismiss',
-            className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
-          })
-        ]
-      });
-      pioneer.exporters.forEach(exporter => {
-        pioneer.publishEvent(
-          notebookPanel,
-          {
-            eventName: 'HintRequestError',
-            eventTime: Date.now(),
-            eventInfo: {
-              gradeId: gradeId
-            }
-          },
-          exporter,
-          false
-        );
-      });
+      }, 1000);
     }
   } catch (e) {
     console.log(e);
