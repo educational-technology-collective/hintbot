@@ -12,7 +12,6 @@ export const createHintBanner = async (
   postReflection: boolean
 ) => {
   const gradeId = cell.getMetadata('nbgrader').grade_id;
-  // const remainingHints = cell.getMetadata('remaining_hints');
 
   const hintBannerPlaceholder = document.createElement('div');
   hintBannerPlaceholder.id = 'hint-banner-placeholder';
@@ -37,10 +36,9 @@ export const createHintBanner = async (
   hintBanner.appendChild(hintBannerCancelButton);
 
   hintBannerCancelButton.onclick = async () => {
-    await requestAPI('hint', {
+    await requestAPI('cancel', {
       method: 'POST',
       body: JSON.stringify({
-        resource: 'cancel',
         problem_id: gradeId
       })
     });
@@ -50,7 +48,6 @@ export const createHintBanner = async (
     const response: any = await requestAPI('hint', {
       method: 'POST',
       body: JSON.stringify({
-        resource: 'req',
         problem_id: gradeId,
         buggy_notebook_path: notebookPanel.context.path
       })
@@ -74,11 +71,6 @@ export const createHintBanner = async (
       });
       hintBanner.innerText = hintContent;
       hintBannerCancelButton.remove();
-      // cell.setMetadata('remaining_hints', remainingHints - 1);
-      // document.getElementById(gradeId).innerText = `Hint (${
-      //   remainingHints - 1
-      // } left for this question)`;
-      // notebookPanel.context.save();
 
       const hintBannerButtonsContainer = document.createElement('div');
       hintBannerButtonsContainer.id = 'hint-banner-buttons-container';

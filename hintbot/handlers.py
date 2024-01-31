@@ -3,9 +3,8 @@ import time
 import os
 import requests
 import tornado
-from jupyter_server.base.handlers import APIHandler
-from jupyter_server.utils import url_path_join
-
+from jupyter_server.base.handlers import JupyterHandler
+from jupyter_server.extension.handler import ExtensionHandlerMixin
 
 HOST_URL = "https://gpt-hints-api-202402-3d06c421464e.herokuapp.com/feedback_generation/query/"
 
@@ -46,53 +45,64 @@ class Job():
     def cancel(self):
         self._cancelled = True
 
+class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-class RouteHandler(APIHandler):
-    # The following decorator should be present on all verb methods (head, get, post,
-    # patch, put, delete, options) to ensure only authorized user can request the
-    # Jupyter server
     @tornado.web.authenticated
-    async def post(self):
-        body = json.loads(self.request.body)
-        if body.get("resource") == "req":
-            student_id = os.getenv('WORKSPACE_ID')
-            problem_id = body.get('problem_id')
-            buggy_notebook_path = body.get('buggy_notebook_path')
-            response = requests.post(
-                HOST_URL,
-                data={
-                    "student_id": student_id,
-                    "problem_id": problem_id,
-                },
-                files={"file": ("notebook.ipynb", open(buggy_notebook_path, "rb"))},
-                timeout=10
-            )
+    def get(self, resource):
+        try:
+            self.set_header("Content-Type", "application/json")
+            if resource == "version":
+                self.finish(json.dumps(__version__))
+            elif resource == "environ":
+                self.finish(json.dumps(dict(os.environ.items())))
+            else:
+                self.set_status(404)
+        except Exception as e:
+            self.log.error(str(e))
+            self.set_status(500)
+            self.finish(json.dumps(str(e)))
 
-            if response.status_code != 200:
-                self.write({"job_finished": False, "feedback": "error"})
-                return
+    @tornado.web.authenticated
+    async def post(self, resource):
+        try:
+            body = json.loads(self.request.body)
+            if resource == "hint":
+                student_id = os.getenv('WORKSPACE_ID')
+                problem_id = body.get('problem_id')
+                buggy_notebook_path = body.get('buggy_notebook_path')
+                response = requests.post(
+                    HOST_URL,
+                    data={
+                        "student_id": student_id,
+                        "problem_id": problem_id,
+                    },
+                    files={"file": ("notebook.ipynb", open(buggy_notebook_path, "rb"))},
+                    timeout=10
+                )
 
-            print(f"Received ticket: {response.json()}")
-            print("Waiting for the hint to be generated...")
-            job = Job(240)
-            self.application.jobs[problem_id] = job
-            res = await job.run(response.json()["request_id"])
+                if response.status_code != 200:
+                    self.write({"job_finished": False, "feedback": "error"})
+                    return
 
-            self.write(res)
-            return
+                print(f"Received ticket: {response.json()}")
+                print("Waiting for the hint to be generated...")
+                job = Job(240)
+                self.extensionapp.jobs[problem_id] = job
+                res = await job.run(response.json()["request_id"])
+                del self.extensionapp.jobs[problem_id]
+                self.finish(json.dumps(res))
+                
+            elif resource == "cancel":
+                problem_id = body.get('problem_id')
+                self.extensionapp.jobs[problem_id].cancel()
+                del self.extensionapp.jobs[problem_id]
+                self.write({"job_finished": False, "feedback": "cancelled"}) 
+            else:
+                self.set_status(404)
 
-        if body.get("resource") == 'cancel':
-            problem_id = body.get('problem_id')
-            self.application.jobs[problem_id].cancel()
-            self.write({"job_finished": False, "feedback": "cancelled"})
-            return
-
-
-def setup_handlers(web_app):
-    host_pattern = ".*$"
-
-    base_url = web_app.settings["base_url"]
-    route_pattern = url_path_join(base_url, "hintbot", "hint")
-    handlers = [(route_pattern, RouteHandler)]
-    web_app.add_handlers(host_pattern, handlers)
-    web_app.jobs = {}
+        except Exception as e:
+            self.log.error(str(e))
+            self.set_status(500)
+            self.finish(json.dumps(str(e)))
