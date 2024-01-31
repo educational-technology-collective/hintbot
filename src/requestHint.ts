@@ -101,10 +101,9 @@ export const requestHint = async (
         );
       });
       if (dialogResult.button.label === 'Cancel') {
-        await requestAPI('hint', {
+        await requestAPI('cancel', {
           method: 'POST',
           body: JSON.stringify({
-            resource: 'cancel',
             problem_id: gradeId
           })
         });
