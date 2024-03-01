@@ -8,6 +8,7 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { Widget } from '@lumino/widgets';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { requestHint } from './requestHint';
+import { HintTypeSelectionWidget } from './showHintTypeDialog';
 
 const activateHintBot = async (
   notebookPanel: NotebookPanel,
@@ -35,8 +36,31 @@ const activateHintBot = async (
         const hintButton = document.createElement('button');
         hintButton.classList.add('hint-button');
         hintButton.id = cells.get(i).getMetadata('nbgrader').grade_id;
-        hintButton.onclick = () =>
-          requestHint(notebookPanel, settings, pioneer, cells.get(i));
+        hintButton.onclick = async () => {
+          const dialogResult = await showDialog({
+            title: 'Please select the type of hint you require',
+            body: new HintTypeSelectionWidget(),
+            buttons: [
+              Dialog.cancelButton({
+                label: 'Cancel',
+                className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
+              }),
+              Dialog.createButton({
+                label: 'Request hint',
+                className: 'jp-Dialog-button jp-mod-accept jp-mod-styled'
+              })
+            ]
+          });
+          if (dialogResult.button.label === 'Request hint') {
+            requestHint(
+              notebookPanel,
+              settings,
+              pioneer,
+              cells.get(i),
+              dialogResult.value
+            );
+          }
+        };
         notebookPanel.content.widgets[i].node.appendChild(hintButton);
         if (cells.get(i).getMetadata('remaining_hints') === undefined) {
           cells.get(i).setMetadata('remaining_hints', hintQuantity);
@@ -84,8 +108,14 @@ const plugin: JupyterFrontEndPlugin<void> = {
           const dialogResult = await showDialog({
             body: 'The hintbot extension is a prototype and not required to be used for the course. \n The hints generated could be wrong, and it involves sending data to third party services outside of the university.',
             buttons: [
-              Dialog.createButton({ label: 'Cancel' }),
-              Dialog.createButton({ label: 'Confirm activation' })
+              Dialog.cancelButton({
+                label: 'Cancel',
+                className: 'jp-mod-reject jp-mod-styled'
+              }),
+              Dialog.createButton({
+                label: 'Confirm activation',
+                className: 'jp-mod-accept jp-mod-styled'
+              })
             ],
             hasClose: false
           });
@@ -98,7 +128,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
                 notebookPanel,
                 {
                   eventName: 'HintBotActivated',
-                  eventTime: new Date()
+                  eventTime: Date.now()
                 },
                 exporter,
                 false

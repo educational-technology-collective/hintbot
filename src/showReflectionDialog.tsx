@@ -31,8 +31,14 @@ export const showReflectionDialog = (message: string) => {
     title: 'Reflection',
     body: new ReflectionInputWidget(message),
     buttons: [
-      Dialog.createButton({ label: 'Cancel' }),
-      Dialog.createButton({ label: 'Submit' })
+      Dialog.cancelButton({
+        label: 'Cancel',
+        className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
+      }),
+      Dialog.createButton({
+        label: 'Submit',
+        className: 'jp-Dialog-button jp-mod-accept jp-mod-styled'
+      })
     ],
     hasClose: false
   });

@@ -67,13 +67,14 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
         try:
             body = json.loads(self.request.body)
             if resource == "hint":
-                student_id = os.getenv('WORKSPACE_ID')
+                # hint_type = body.get('hint_type')
                 problem_id = body.get('problem_id')
                 buggy_notebook_path = body.get('buggy_notebook_path')
                 response = requests.post(
                     HOST_URL,
                     data={
-                        "student_id": student_id,
+                        "student_id": "x",
+                        # "hint_type": hint_type,
                         "problem_id": problem_id,
                     },
                     files={"file": ("notebook.ipynb", open(buggy_notebook_path, "rb"))},

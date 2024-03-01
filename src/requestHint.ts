@@ -11,7 +11,8 @@ export const requestHint = async (
   notebookPanel: NotebookPanel,
   settings: ISettingRegistry.ISettings,
   pioneer: IJupyterLabPioneer,
-  cell: ICellModel
+  cell: ICellModel,
+  hintType: string
 ) => {
   const gradeId = cell.getMetadata('nbgrader')?.grade_id;
   const remainingHints = cell.getMetadata('remaining_hints');
@@ -68,7 +69,7 @@ export const requestHint = async (
     const preReflection = settings.get('preReflection').composite as boolean;
     const postReflection = settings.get('postReflection').composite as boolean;
 
-    createHintBanner(notebookPanel, pioneer, cell, postReflection);
+    createHintBanner(notebookPanel, pioneer, cell, postReflection, hintType);
 
     cell.setMetadata('remaining_hints', remainingHints - 1);
     document.getElementById(gradeId).innerText = `Hint (${
@@ -93,7 +94,8 @@ export const requestHint = async (
             eventInfo: {
               status: dialogResult.button.label,
               gradeId: gradeId,
-              reflection: dialogResult.value
+              reflection: dialogResult.value,
+              hintType: hintType
             }
           },
           exporter,
