@@ -3,22 +3,80 @@
 
     https://jupyterlab.readthedocs.io/en/stable/developer/css.html
 */
-.hint-button {
-  width: 60%;
-  display: block;
-  background-color: #1976d2;
+.hint {
+  background-color: #f5f5f5;
+  display: flex;
+  margin: 10px auto 10px 72px;
+  justify-content: space-between;
   border: 1px solid #e0e0e0;
+  padding: 5px 10px 5px 10px;
+}
+
+.hint-left {
+  display: flex;
+  width: 40%;
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 10px;
+}
+
+.help-text {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.hint-type-button {
+  width: 25px;
+  height: 25px;
+  background-color: #bbbaba;
+  border: 0.5px solid #e0e0e0;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  margin-left: 10px;
+}
+
+.hint-buttons {
+  display: flex;
+  justify-content: flex-end;
+  width: 60%;
+}
+.hint-button {
+  display: inline-block;
+  width: 100px;
+  background-color: #e0e0e0;
+  border: 0.5px solid #e0e0e0;
   border-radius: 3px;
   color: #fff;
   cursor: pointer;
   font-size: 14px;
-  font-weight: bold;
   line-height: 1.2;
-  margin: 6px auto;
+  margin: 6px 10px;
   padding: 6px 12px;
   text-align: center;
   text-decoration: none;
   white-space: nowrap;
+}
+
+.planning {
+  background-color: #81c0ff;
+}
+
+.debugging {
+  background-color: #f87b7b;
+}
+
+.optimizing {
+  background-color: #7fc47f;
+}
+
+.hint-type {
+  line-height: 40px;
 }
 
 :root {

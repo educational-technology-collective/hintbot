@@ -33,43 +33,89 @@ const activateHintBot = async (
         cells.get(i).getMetadata('nbgrader')?.grade_id !==
           'cell-018440eg2f1b6a62' // hardcode question identifier, to be removed after notebook updated and deployed
       ) {
-        const hintButton = document.createElement('button');
-        hintButton.classList.add('hint-button');
-        hintButton.id = cells.get(i).getMetadata('nbgrader').grade_id;
-        hintButton.onclick = async () => {
-          const dialogResult = await showDialog({
-            title: 'Please select the type of hint you require',
-            body: new HintTypeSelectionWidget(),
-            buttons: [
-              Dialog.cancelButton({
-                label: 'Cancel',
-                className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
-              }),
-              Dialog.createButton({
-                label: 'Request hint',
-                className: 'jp-Dialog-button jp-mod-accept jp-mod-styled'
-              })
-            ]
-          });
-          if (dialogResult.button.label === 'Request hint') {
-            requestHint(
-              notebookPanel,
-              settings,
-              pioneer,
-              cells.get(i),
-              dialogResult.value
-            );
-          }
-        };
-        notebookPanel.content.widgets[i].node.appendChild(hintButton);
+        const hint = document.createElement('div');
+        hint.classList.add('hint');
+
+        const hintLeft = document.createElement('div');
+        hintLeft.classList.add('hint-left');
+
+        const helpText = document.createElement('div');
+        helpText.classList.add('help-text');
+        helpText.id = cells.get(i).getMetadata('nbgrader').grade_id;
+        hintLeft.appendChild(helpText);
         if (cells.get(i).getMetadata('remaining_hints') === undefined) {
           cells.get(i).setMetadata('remaining_hints', hintQuantity);
-          hintButton.innerText = `Hint (${hintQuantity} left for this question)`;
+          helpText.innerText = `Help (${hintQuantity} left for this question)`;
         } else {
-          hintButton.innerText = `Hint (${cells
+          helpText.innerText = `Help (${cells
             .get(i)
             .getMetadata('remaining_hints')} left for this question)`;
         }
+
+        const hintTypeButton = document.createElement('button');
+        hintTypeButton.classList.add('hint-type-button');
+        hintTypeButton.innerText = ' ? ';
+        hintTypeButton.onclick = () => {
+          showDialog({
+            body: new HintTypeSelectionWidget(),
+            buttons: [
+              Dialog.createButton({
+                label: 'Dismiss',
+                className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
+              })
+            ]
+          });
+        };
+        hintLeft.appendChild(hintTypeButton);
+        hint.appendChild(hintLeft);
+
+        const hintButtons = document.createElement('div');
+        hintButtons.classList.add('hint-buttons');
+
+        const planning = document.createElement('button');
+        planning.innerText = 'planning';
+        planning.classList.add('hint-button', 'planning');
+        planning.onclick = () =>
+          requestHint(
+            notebookPanel,
+            settings,
+            pioneer,
+            cells.get(i),
+            'planning'
+          );
+
+        const debugging = document.createElement('button');
+        debugging.innerText = 'debugging';
+        debugging.classList.add('hint-button', 'debugging');
+
+        debugging.onclick = () =>
+          requestHint(
+            notebookPanel,
+            settings,
+            pioneer,
+            cells.get(i),
+            'debugging'
+          );
+
+        const optimizing = document.createElement('button');
+        optimizing.innerText = 'optimizing';
+        optimizing.classList.add('hint-button', 'optimizing');
+
+        optimizing.onclick = () =>
+          requestHint(
+            notebookPanel,
+            settings,
+            pioneer,
+            cells.get(i),
+            'optimizing'
+          );
+
+        hintButtons.appendChild(planning);
+        hintButtons.appendChild(debugging);
+        hintButtons.appendChild(optimizing);
+        hint.appendChild(hintButtons);
+
+        notebookPanel.content.widgets[i].node.appendChild(hint);
       }
     }
   }

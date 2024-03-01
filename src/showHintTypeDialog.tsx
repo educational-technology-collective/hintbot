@@ -17,31 +17,34 @@ export class HintTypeSelectionWidget extends ReactWidget {
   protected render(): React.ReactElement<any> {
     return (
       <div className="hint-type">
-        <form>
-          <div>
-            <label>
-              <input type="radio" name="hint-type" value="planning" />
-              Show me how to approach the problem step by step
-            </label>
-          </div>
-          <div>
-            <label>
-              <input
+        {/* <form> */}
+        <div>
+          <label>
+            {/* <input type="radio" name="hint-type" value="planning" /> */}
+            <span className="hint-button planning">Planning</span> Show me how
+            to approach the problem step by step
+          </label>
+        </div>
+        <div>
+          <label>
+            {/* <input
                 type="radio"
                 name="hint-type"
                 value="debugging"
                 checked={true}
-              />
-              Help me debug the code
-            </label>
-          </div>
-          <div>
-            <label>
-              <input type="radio" name="hint-type" value="optimizing" />
-              Assist me in optimizing the speed / clarity of my program
-            </label>
-          </div>
-        </form>
+              /> */}
+            <span className="hint-button debugging">Debugging</span> Help me
+            debug the code
+          </label>
+        </div>
+        <div>
+          <label>
+            {/* <input type="radio" name="hint-type" value="optimizing" /> */}
+            <span className="hint-button optimizing">Optimizing</span> Assist me
+            in optimizing the speed / clarity of my program
+          </label>
+        </div>
+        {/* </form> */}
       </div>
     );
   }
