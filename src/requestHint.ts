@@ -43,7 +43,7 @@ export const requestHint = async (
     });
   } else if (remainingHints < 1) {
     showDialog({
-      title: 'No hint left for this question.',
+      title: 'No help left for this question.',
       buttons: [
         Dialog.createButton({
           label: 'Dismiss',
@@ -72,7 +72,7 @@ export const requestHint = async (
     createHintBanner(notebookPanel, pioneer, cell, postReflection, hintType);
 
     cell.setMetadata('remaining_hints', remainingHints - 1);
-    document.getElementById(gradeId).innerText = `Hint (${
+    document.getElementById(gradeId).innerText = `Help (${
       remainingHints - 1
     } left for this question)`;
     notebookPanel.context.save();
