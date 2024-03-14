@@ -43,7 +43,7 @@ export const createHintBanner = async (
     });
   };
 
-  const hintRequestCompleted = (hintContent: string) => {
+  const hintRequestCompleted = (hintContent: string, requestId: string) => {
     pioneer.exporters.forEach(exporter => {
       pioneer.publishEvent(
         notebookPanel,
@@ -53,6 +53,8 @@ export const createHintBanner = async (
           eventInfo: {
             hintContent: hintContent,
             gradeId: gradeId,
+            requestId: requestId,
+
             hintType: hintType
           }
         },
@@ -84,6 +86,7 @@ export const createHintBanner = async (
             eventTime: Date.now(),
             eventInfo: {
               gradeId: gradeId,
+              requestId: requestId,
               hintContent: hintContent,
               evaluation: evaluation,
               hintType: hintType
@@ -112,6 +115,7 @@ export const createHintBanner = async (
               eventInfo: {
                 status: dialogResult.button.label,
                 gradeId: gradeId,
+                requestId: requestId,
                 hintContent: hintContent,
                 reflection: dialogResult.value,
                 hintType: hintType
@@ -139,7 +143,7 @@ export const createHintBanner = async (
     hintBanner.appendChild(hintBannerButtonsContainer);
   };
 
-  const hintRequestCancelled = () => {
+  const hintRequestCancelled = (requestId: string) => {
     hintBanner.remove();
     hintBannerPlaceholder.remove();
     showDialog({
@@ -158,7 +162,8 @@ export const createHintBanner = async (
           eventName: 'HintRequestCancelled',
           eventTime: Date.now(),
           eventInfo: {
-            gradeId: gradeId
+            gradeId: gradeId,
+            requestId: requestId
           }
         },
         exporter,
@@ -167,7 +172,7 @@ export const createHintBanner = async (
     });
   };
 
-  const hintRequestError = () => {
+  const hintRequestError = (e: Error) => {
     hintBanner.remove();
     hintBannerPlaceholder.remove();
     showDialog({
@@ -186,7 +191,8 @@ export const createHintBanner = async (
           eventName: 'HintRequestError',
           eventTime: Date.now(),
           eventInfo: {
-            gradeId: gradeId
+            gradeId: gradeId,
+            requestId: e?.message
           }
         },
         exporter,
@@ -214,7 +220,7 @@ export const createHintBanner = async (
     console.log('create ticket', response);
     const requestId = response?.request_id;
     if (!requestId) {
-      throw new Error('Unable to create ticket');
+      throw new Error();
     } else {
       const intervalId = setInterval(async () => {
         const response: any = await requestAPI('check', {
@@ -230,19 +236,19 @@ export const createHintBanner = async (
         } else if (response.status === STATUS['Success']) {
           console.log('success');
           clearInterval(intervalId);
-          hintRequestCompleted(response.result.feedback);
+          hintRequestCompleted(response.result.feedback, requestId);
         } else if (response.status === STATUS['Cancelled']) {
           console.log('cancelled');
           clearInterval(intervalId);
-          hintRequestCancelled();
+          hintRequestCancelled(requestId);
         } else {
           clearInterval(intervalId);
-          throw new Error('Unable to retrieve hint');
+          throw new Error(requestId);
         }
       }, 1000);
     }
   } catch (e) {
     console.log(e);
-    hintRequestError();
+    hintRequestError(e as Error);
   }
 };

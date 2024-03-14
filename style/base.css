@@ -9,7 +9,7 @@
   margin: 10px auto 10px 72px;
   justify-content: space-between;
   border: 1px solid #e0e0e0;
-  padding: 5px 10px 5px 10px;
+  padding: 5px 10px;
 }
 
 .hint-left {
@@ -46,6 +46,7 @@
   justify-content: flex-end;
   width: 60%;
 }
+
 .hint-button {
   display: inline-block;
   width: 100px;

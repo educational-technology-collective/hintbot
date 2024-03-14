@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, showDialog, ReactWidget } from '@jupyterlab/apputils';
+import { ReactWidget } from '@jupyterlab/apputils';
 
 export class HintTypeSelectionWidget extends ReactWidget {
   constructor() {
