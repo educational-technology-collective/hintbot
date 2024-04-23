@@ -66,8 +66,45 @@ export const requestHint = async (
       );
     });
   } else {
-    const preReflection = settings.get('preReflection').composite as boolean;
-    const postReflection = settings.get('postReflection').composite as boolean;
+    let preReflection = settings.get('preReflection').composite as boolean;
+    let postReflection = settings.get('postReflection').composite as boolean;
+
+    try {
+      const id: string = await requestAPI('id');
+      const n =
+        id
+          .split('')
+          .map(c => c.charCodeAt(0) - 64)
+          .reduce((acc, val) => acc + val, 0) % 3;
+      console.log(`Condition ${n}`);
+
+      if (n === 0) {
+        preReflection = true;
+        postReflection = false;
+      } else if (n === 1) {
+        preReflection = false;
+        postReflection = true;
+      } else {
+        preReflection = false;
+        postReflection = false;
+      }
+    } catch (e) {
+      pioneer.exporters.forEach(exporter => {
+        pioneer.publishEvent(
+          notebookPanel,
+          {
+            eventName: 'ConvertIDError',
+            eventTime: Date.now(),
+            eventInfo: {
+              error: e
+            }
+          },
+          exporter,
+          true
+        );
+      });
+      console.log(e);
+    }
 
     createHintBanner(notebookPanel, pioneer, cell, postReflection);
 

@@ -63,6 +63,21 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
         super().__init__(*args, **kwargs)
 
     @tornado.web.authenticated
+    async def get(self, resource):
+        try:
+            self.set_header("Content-Type", "application/json")
+            if resource == "version":
+                self.finish(json.dumps(__version__))
+            elif resource == "id":
+                self.finish(json.dumps(os.getenv('WORKSPACE_ID')))
+            else:
+                self.set_status(404)
+        except Exception as e:
+            self.log.error(str(e))
+            self.set_status(500)
+            self.finish(json.dumps(str(e)))
+        
+    @tornado.web.authenticated
     async def post(self, resource):
         try:
             body = json.loads(self.request.body)
