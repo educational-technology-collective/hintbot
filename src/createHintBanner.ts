@@ -9,8 +9,8 @@ export const createHintBanner = async (
   notebookPanel: NotebookPanel,
   pioneer: IJupyterLabPioneer,
   cell: ICellModel,
-  postReflection: boolean,
-  hintType: string
+  postReflection: boolean
+  // hintType: string
 ) => {
   const gradeId = cell.getMetadata('nbgrader').grade_id;
 
@@ -53,9 +53,8 @@ export const createHintBanner = async (
           eventInfo: {
             hintContent: hintContent,
             gradeId: gradeId,
-            requestId: requestId,
-
-            hintType: hintType
+            requestId: requestId
+            // hintType: hintType
           }
         },
         exporter,
@@ -88,8 +87,8 @@ export const createHintBanner = async (
               gradeId: gradeId,
               requestId: requestId,
               hintContent: hintContent,
-              evaluation: evaluation,
-              hintType: hintType
+              evaluation: evaluation
+              // hintType: hintType
             }
           },
           exporter,
@@ -117,8 +116,8 @@ export const createHintBanner = async (
                 gradeId: gradeId,
                 requestId: requestId,
                 hintContent: hintContent,
-                reflection: dialogResult.value,
-                hintType: hintType
+                reflection: dialogResult.value
+                // hintType: hintType
               }
             },
             exporter,
@@ -212,7 +211,7 @@ export const createHintBanner = async (
     const response: any = await requestAPI('hint', {
       method: 'POST',
       body: JSON.stringify({
-        hint_type: hintType,
+        // hint_type: hintType,
         problem_id: gradeId,
         buggy_notebook_path: notebookPanel.context.path
       })

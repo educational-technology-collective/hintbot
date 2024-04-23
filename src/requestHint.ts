@@ -11,8 +11,8 @@ export const requestHint = async (
   notebookPanel: NotebookPanel,
   settings: ISettingRegistry.ISettings,
   pioneer: IJupyterLabPioneer,
-  cell: ICellModel,
-  hintType: string
+  cell: ICellModel
+  // hintType: string
 ) => {
   const gradeId = cell.getMetadata('nbgrader')?.grade_id;
   const remainingHints = cell.getMetadata('remaining_hints');
@@ -43,7 +43,7 @@ export const requestHint = async (
     });
   } else if (remainingHints < 1) {
     showDialog({
-      title: 'No help left for this question.',
+      title: 'No hint left for this question.',
       buttons: [
         Dialog.createButton({
           label: 'Dismiss',
@@ -69,10 +69,10 @@ export const requestHint = async (
     const preReflection = settings.get('preReflection').composite as boolean;
     const postReflection = settings.get('postReflection').composite as boolean;
 
-    createHintBanner(notebookPanel, pioneer, cell, postReflection, hintType);
+    createHintBanner(notebookPanel, pioneer, cell, postReflection);
 
     cell.setMetadata('remaining_hints', remainingHints - 1);
-    document.getElementById(gradeId).innerText = `Help (${
+    document.getElementById(gradeId).innerText = `Hint (${
       remainingHints - 1
     } left for this question)`;
     notebookPanel.context.save();
@@ -94,8 +94,8 @@ export const requestHint = async (
             eventInfo: {
               status: dialogResult.button.label,
               gradeId: gradeId,
-              reflection: dialogResult.value,
-              hintType: hintType
+              reflection: dialogResult.value
+              // hintType: hintType
             }
           },
           exporter,
