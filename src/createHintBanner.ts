@@ -235,7 +235,7 @@ export const createHintBanner = async (
         } else if (response.status === STATUS['Success']) {
           console.log('success');
           clearInterval(intervalId);
-          hintRequestCompleted(response.result.feedback, requestId);
+          hintRequestCompleted(JSON.parse(response.result).feedback, requestId);
         } else if (response.status === STATUS['Cancelled']) {
           console.log('cancelled');
           clearInterval(intervalId);

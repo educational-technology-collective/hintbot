@@ -2,10 +2,13 @@ import json
 import os
 import requests
 import tornado
+import base64
+from dotenv import load_dotenv
 from jupyter_server.base.handlers import JupyterHandler
 from jupyter_server.extension.handler import ExtensionHandlerMixin
+load_dotenv()
 
-HOST_URL = "https://gpt-hints-api-202402-3d06c421464e.herokuapp.com/feedback_generation/query/"
+HOST_URL = os.getenv('HOST_URL')
 
 STATUS = {
     "Loading": 0,
@@ -34,9 +37,17 @@ class Job():
             self._timer += 1
 
             if self._timer % 10 == 0:
-                response = requests.get(
+
+                response = requests.post(
                     HOST_URL,
-                    params={"request_id": self._request_id},
+                    json={
+                        "method": "GET",
+                        "port": "9002",
+                        "path": "feedback_generation/query/",
+                        "params": {
+                            "request_id": self._request_id
+                        }
+                    },
                     timeout=10
                 )
                 print(response.json(), self._timer)
@@ -46,9 +57,9 @@ class Job():
                     self.status = STATUS["Error"]
                     return
 
-                if response.json()["job_finished"]:
+                if json.loads(response.json()["body"])["job_finished"]:
                     print("Success")
-                    self.result = response.json()
+                    self.result = response.json()["body"]
                     self.status = STATUS["Success"]
                     return
 
@@ -85,26 +96,31 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                 # hint_type = body.get('hint_type')
                 problem_id = body.get('problem_id')
                 buggy_notebook_path = body.get('buggy_notebook_path')
+                f = open(buggy_notebook_path, "rb")
                 response = requests.post(
                     HOST_URL,
-                    data={
-                        "student_id": "x",
-                        # "hint_type": hint_type,
-                        "problem_id": problem_id,
+                    json={
+                        "method": "POST",
+                        "port": "9002",
+                        "path": "feedback_generation/query/",
+                        "body": {
+                            "student_id": "x",
+                            "problem_id": problem_id,
+                            "file": json.dumps(json.load(f)),
+                        }
                     },
-                    files={"file": ("notebook.ipynb", open(buggy_notebook_path, "rb"))},
                     timeout=10
                 )
-
+                f.close()
                 if response.status_code == 200:
-                    request_id = response.json()["request_id"]
+                    request_id = json.loads(response.json()["body"])["request_id"]
                     print(f"Received ticket: {request_id}, waiting for the hint to be generated...")
 
                     newjob = Job(time_limit=240, request_id=request_id)
                     newjob.run()
                     self.extensionapp.jobs[problem_id] = newjob
 
-                    self.write(json.dumps(response.json()))
+                    self.write(response.json()["body"])
                 else:
                     self.write("request ticket error")
 
