@@ -18,20 +18,19 @@ const activateHintBot = async (
   const hintQuantity = settings.get('hintQuantity').composite as number;
   const cells = notebookPanel.content.model?.cells;
 
-  if (
-    cells &&
-    notebookPanel.model.getMetadata('etc_identifier') &&
-    notebookPanel.model.getMetadata('etc_identifier') ===
-      '7ca0093b-b622-4463-8696-65f1e0f33522'
-    // hardcode assignment identifier, to be removed after api service fully implemented
-  ) {
+  if (cells) {
     for (let i = 0; i < cells.length; i++) {
       if (
         cells.get(i).getMetadata('nbgrader') &&
         cells.get(i).getMetadata('nbgrader')?.cell_type === 'markdown' &&
         cells.get(i).getMetadata('nbgrader')?.grade_id &&
-        cells.get(i).getMetadata('nbgrader')?.grade_id !==
-          'cell-018440eg2f1b6a62' // hardcode question identifier, to be removed after notebook updated and deployed
+        ![
+          'cell-d4da7eb9acee2a6d',
+          'cell-a839e7b47494b4c2',
+          'cell-018440ed2f1b6a62',
+          'cell-018440eg2f1b6a62'
+        ].includes(cells.get(i).getMetadata('nbgrader')?.grade_id)
+        // hardcode question identifier, to be removed after notebook updated and deployed
       ) {
         const hintButton = document.createElement('button');
         hintButton.classList.add('hint-button');

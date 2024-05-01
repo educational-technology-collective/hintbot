@@ -109,6 +109,7 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                             "file": json.dumps(json.load(f)),
                         }
                     },
+                    # files={"file": ("notebook.json", open(buggy_notebook_path, "rb"))},
                     timeout=10
                 )
                 f.close()
