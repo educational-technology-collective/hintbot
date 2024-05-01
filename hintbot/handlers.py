@@ -36,7 +36,7 @@ class Job():
             yield tornado.gen.sleep(1)
             self._timer += 1
 
-            if self._timer % 10 == 0:
+            if self._timer % 5 == 0:
 
                 response = requests.post(
                     HOST_URL,
