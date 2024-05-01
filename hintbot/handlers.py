@@ -98,6 +98,7 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                 buggy_notebook_path = body.get('buggy_notebook_path')
                 f = open(buggy_notebook_path, "rb")
                 response = requests.post(
+                    # f'{HOST_URL}/feedback_generation/query/?method=POST&port=9002&student_id=x&problem_id={problem_id}',
                     HOST_URL,
                     json={
                         "method": "POST",

@@ -96,8 +96,18 @@ export const createHintBanner = async (
         );
       });
       if (postReflection) {
+        const postReflectionPrompts = [
+          'Considering the hint you just received and your solution thus far, what steps will you take next to move forward on the question?',
+          'Considering the hint you just received and your solution thus far, are there other topics from the course material you should be incorporating into your solution?',
+          'Considering the hint you just received and your solution thus far, was your general approach a good one, or should you change to an alternative approach to solve the step of the question you are working on?'
+        ];
+
+        const randomIndex = Math.floor(
+          Math.random() * postReflectionPrompts.length
+        );
+
         const dialogResult = await showReflectionDialog(
-          'Write a brief statement of what you learned from the hint and how you will use it to solve the problem.'
+          postReflectionPrompts[randomIndex]
         );
 
         if (dialogResult.button.label === 'Submit') {
@@ -116,6 +126,7 @@ export const createHintBanner = async (
                 gradeId: gradeId,
                 requestId: requestId,
                 hintContent: hintContent,
+                prompt: randomIndex,
                 reflection: dialogResult.value
                 // hintType: hintType
               }

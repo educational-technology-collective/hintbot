@@ -117,9 +117,20 @@ export const requestHint = async (
     if (preReflection) {
       document.getElementById('hint-banner').style.filter = 'blur(10px)';
 
-      const dialogResult = await showReflectionDialog(
-        'Write a brief statement of what the problem is that you are facing and why you think your solution is not working.'
+      const preReflectionPrompts = [
+        'Considering your submission and the feedback you have gotten from the system thus far, what are the steps you think must be followed in order to answer this question, and which step is the one you are currently stuck on?',
+        'Considering your submission and the feedback you have gotten from the system thus far, which topics in the course do you think are most relevant to the current problem you are facing?',
+        'Considering your submission and the feedback you have gotten from the system thus far, is there an alternative approach which you can try to to solve the step of the question you are working on?'
+      ];
+
+      const randomIndex = Math.floor(
+        Math.random() * preReflectionPrompts.length
       );
+
+      const dialogResult = await showReflectionDialog(
+        preReflectionPrompts[randomIndex]
+      );
+
       document.getElementById('hint-banner').style.filter = 'none';
 
       pioneer.exporters.forEach(exporter => {
@@ -131,6 +142,7 @@ export const requestHint = async (
             eventInfo: {
               status: dialogResult.button.label,
               gradeId: gradeId,
+              prompt: randomIndex,
               reflection: dialogResult.value
               // hintType: hintType
             }
