@@ -20,7 +20,7 @@
       "type": "number",
       "title": "Hint Quantity (per question)",
       "description": "The number of hints allowed for each question",
-      "default": 5
+      "default": 3
     }
   },
   "additionalProperties": false
