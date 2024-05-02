@@ -2,11 +2,8 @@ import json
 import os
 import requests
 import tornado
-import base64
-from dotenv import load_dotenv
 from jupyter_server.base.handlers import JupyterHandler
 from jupyter_server.extension.handler import ExtensionHandlerMixin
-load_dotenv()
 
 HOST_URL = os.getenv('HOST_URL')
 
