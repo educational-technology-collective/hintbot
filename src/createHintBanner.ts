@@ -195,6 +195,9 @@ export const createHintBanner = async (
   const hintRequestError = (e: Error) => {
     hintBanner.remove();
     hintBannerPlaceholder.remove();
+
+    cell.setMetadata('remaining_hints', cell.getMetadata('remaining_hints') + 1);
+
     showDialog({
       title: 'Hint Request Error. Please try again later',
       buttons: [
