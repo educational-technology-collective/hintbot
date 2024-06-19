@@ -102,7 +102,7 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                         "port": "9002",
                         "path": "feedback_generation/query/",
                         "body": {
-                            "student_id": "x",
+                            "student_id": os.getenv('WORKSPACE_ID'),
                             "problem_id": problem_id,
                             "file": json.dumps(json.load(f)),
                         }
