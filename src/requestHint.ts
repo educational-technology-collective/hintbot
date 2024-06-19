@@ -67,7 +67,7 @@ export const requestHint = async (
       );
     });
   } else {
-    const uuid = uuidv4()
+    const uuid = uuidv4();
     let preReflection = false;
     let postReflection = false;
 
@@ -90,7 +90,14 @@ export const requestHint = async (
       postReflection = false;
     }
 
-    createHintBanner(notebookPanel, pioneer, cell, postReflection, reflectionGroup, uuid);
+    createHintBanner(
+      notebookPanel,
+      pioneer,
+      cell,
+      postReflection,
+      reflectionGroup,
+      uuid
+    );
 
     cell.setMetadata('remaining_hints', remainingHints - 1);
     document.getElementById(gradeId).innerText = `Hint (${
@@ -129,7 +136,7 @@ export const requestHint = async (
               prompt: randomIndex,
               reflection: dialogResult.value,
               reflectionGroup: reflectionGroup,
-              uuid: uuid,
+              uuid: uuid
               // hintType: hintType
             }
           },

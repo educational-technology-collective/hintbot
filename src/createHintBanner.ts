@@ -11,7 +11,7 @@ export const createHintBanner = async (
   cell: ICellModel,
   postReflection: boolean,
   reflectionGroup: number,
-  uuid: string,
+  uuid: string
   // hintType: string
 ) => {
   const gradeId = cell.getMetadata('nbgrader').grade_id;
@@ -57,7 +57,7 @@ export const createHintBanner = async (
             gradeId: gradeId,
             requestId: requestId,
             reflectionGroup: reflectionGroup,
-            uuid: uuid,
+            uuid: uuid
             // hintType: hintType
           }
         },
@@ -93,7 +93,7 @@ export const createHintBanner = async (
               hintContent: hintContent,
               evaluation: evaluation,
               reflectionGroup: reflectionGroup,
-              uuid: uuid,
+              uuid: uuid
               // hintType: hintType
             }
           },
@@ -135,7 +135,7 @@ export const createHintBanner = async (
                 prompt: randomIndex,
                 reflection: dialogResult.value,
                 reflectionGroup: reflectionGroup,
-                uuid: uuid,
+                uuid: uuid
                 // hintType: hintType
               }
             },
@@ -183,7 +183,7 @@ export const createHintBanner = async (
             gradeId: gradeId,
             requestId: requestId,
             reflectionGroup: reflectionGroup,
-            uuid: uuid,
+            uuid: uuid
           }
         },
         exporter,
@@ -196,7 +196,10 @@ export const createHintBanner = async (
     hintBanner.remove();
     hintBannerPlaceholder.remove();
 
-    cell.setMetadata('remaining_hints', cell.getMetadata('remaining_hints') + 1);
+    cell.setMetadata(
+      'remaining_hints',
+      cell.getMetadata('remaining_hints') + 1
+    );
 
     showDialog({
       title: 'Hint Request Error. Please try again later',
@@ -217,7 +220,7 @@ export const createHintBanner = async (
             gradeId: gradeId,
             requestId: e?.message,
             reflectionGroup: reflectionGroup,
-            uuid: uuid,
+            uuid: uuid
           }
         },
         exporter,
@@ -239,8 +242,8 @@ export const createHintBanner = async (
       body: JSON.stringify({
         // hint_type: hintType,
         problem_id: gradeId,
-        buggy_notebook_path: notebookPanel.context.path,
-       })
+        buggy_notebook_path: notebookPanel.context.path
+      })
     });
     console.log('create ticket', response);
     const requestId = response?.request_id;
