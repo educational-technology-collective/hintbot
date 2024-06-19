@@ -1,6 +1,7 @@
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { NotebookPanel } from '@jupyterlab/notebook';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
+import { v4 as uuidv4 } from 'uuid';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { showReflectionDialog } from './showReflectionDialog';
 import { createHintBanner } from './createHintBanner';
@@ -66,47 +67,30 @@ export const requestHint = async (
       );
     });
   } else {
-    let preReflection = settings.get('preReflection').composite as boolean;
-    let postReflection = settings.get('postReflection').composite as boolean;
+    const uuid = uuidv4()
+    let preReflection = false;
+    let postReflection = false;
 
-    try {
-      const id: string = await requestAPI('id');
-      const n =
-        id
-          .split('')
-          .map(c => c.charCodeAt(0) - 64)
-          .reduce((acc, val) => acc + val, 0) % 3;
-      console.log(`Condition ${n}`);
+    const workspace_id: string = await requestAPI('id');
+    const reflectionGroup =
+      workspace_id
+        .split('')
+        .map(c => c.charCodeAt(0) - 64)
+        .reduce((acc, val) => acc + val, 0) % 3;
+    console.log(`Condition ${reflectionGroup}`);
 
-      if (n === 0) {
-        preReflection = true;
-        postReflection = false;
-      } else if (n === 1) {
-        preReflection = false;
-        postReflection = true;
-      } else {
-        preReflection = false;
-        postReflection = false;
-      }
-    } catch (e) {
-      pioneer.exporters.forEach(exporter => {
-        pioneer.publishEvent(
-          notebookPanel,
-          {
-            eventName: 'ConvertIDError',
-            eventTime: Date.now(),
-            eventInfo: {
-              error: e
-            }
-          },
-          exporter,
-          true
-        );
-      });
-      console.log(e);
+    if (reflectionGroup === 0) {
+      preReflection = true;
+      postReflection = false;
+    } else if (reflectionGroup === 1) {
+      preReflection = false;
+      postReflection = true;
+    } else {
+      preReflection = false;
+      postReflection = false;
     }
 
-    createHintBanner(notebookPanel, pioneer, cell, postReflection);
+    createHintBanner(notebookPanel, pioneer, cell, postReflection, reflectionGroup, uuid);
 
     cell.setMetadata('remaining_hints', remainingHints - 1);
     document.getElementById(gradeId).innerText = `Hint (${
@@ -143,7 +127,9 @@ export const requestHint = async (
               status: dialogResult.button.label,
               gradeId: gradeId,
               prompt: randomIndex,
-              reflection: dialogResult.value
+              reflection: dialogResult.value,
+              reflectionGroup: reflectionGroup,
+              uuid: uuid,
               // hintType: hintType
             }
           },

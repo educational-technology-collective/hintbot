@@ -60,7 +60,9 @@
         "@jupyterlab/notebook": "^4.0.10",
         "@jupyterlab/services": "^7.0.0",
         "@jupyterlab/settingregistry": "^4.0.0",
-        "jupyterlab-pioneer": "^1.4.0"
+        "@types/uuid": "^9.0.8",
+        "jupyterlab-pioneer": "^1.4.0",
+        "uuid": "^10.0.0"
     },
     "devDependencies": {
         "@jupyterlab/builder": "^4.0.0",
