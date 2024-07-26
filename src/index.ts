@@ -30,24 +30,7 @@ const activateHintBot = async (
           'cell-018440ed2f1b6a62',
           'cell-018440eg2f1b6a62'
         ].includes(cells.get(i).getMetadata('nbgrader')?.grade_id)
-        // hardcode question identifier, to be removed after notebook updated and deployed
       ) {
-        // const hintButton = document.createElement('button');
-        // hintButton.classList.add('hint-button');
-        // hintButton.id = cells.get(i).getMetadata('nbgrader').grade_id;
-        // hintButton.onclick = () =>
-        //   requestHint(notebookPanel, settings, pioneer, cells.get(i));
-        // notebookPanel.content.widgets[i].node.appendChild(hintButton);
-
-        // if (cells.get(i).getMetadata('remaining_hints') === undefined) {
-        //   cells.get(i).setMetadata('remaining_hints', hintQuantity);
-        //   hintButton.innerText = `Hint (${hintQuantity} left for this question)`;
-        // } else {
-        //   hintButton.innerText = `Hint (${cells
-        //     .get(i)
-        //     .getMetadata('remaining_hints')} left for this question)`;
-        // }
-
         const hint = document.createElement('div');
         hint.classList.add('hint');
 
@@ -60,9 +43,9 @@ const activateHintBot = async (
         hintLeft.appendChild(helpText);
         if (cells.get(i).getMetadata('remaining_hints') === undefined) {
           cells.get(i).setMetadata('remaining_hints', hintQuantity);
-          helpText.innerText = `Help (${hintQuantity} left for this question)`;
+          helpText.innerText = `Request Hint (${hintQuantity} left for this question)`;
         } else {
-          helpText.innerText = `Help (${cells
+          helpText.innerText = `Request Hint (${cells
             .get(i)
             .getMetadata('remaining_hints')} left for this question)`;
         }
@@ -88,7 +71,7 @@ const activateHintBot = async (
         hintButtons.classList.add('hint-buttons');
 
         const planning = document.createElement('button');
-        planning.innerText = 'planning';
+        planning.innerText = 'Planning';
         planning.classList.add('hint-button', 'planning');
         planning.onclick = () =>
           requestHint(
@@ -100,7 +83,7 @@ const activateHintBot = async (
           );
 
         const debugging = document.createElement('button');
-        debugging.innerText = 'debugging';
+        debugging.innerText = 'Debugging';
         debugging.classList.add('hint-button', 'debugging');
 
         debugging.onclick = () =>
@@ -113,7 +96,7 @@ const activateHintBot = async (
           );
 
         const optimizing = document.createElement('button');
-        optimizing.innerText = 'optimizing';
+        optimizing.innerText = 'Optimizing';
         optimizing.classList.add('hint-button', 'optimizing');
 
         optimizing.onclick = () =>

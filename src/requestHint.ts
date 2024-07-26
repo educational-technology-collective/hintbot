@@ -82,7 +82,7 @@ export const requestHint = async (
     const requestId = response?.request_id;
 
     cell.setMetadata('remaining_hints', remainingHints - 1);
-    document.getElementById(gradeId).innerText = `Hint (${
+    document.getElementById(gradeId).innerText = `Request Hint (${
       remainingHints - 1
     } left for this question)`;
     notebookPanel.context.save();

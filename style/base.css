@@ -47,26 +47,9 @@
   width: 60%;
 }
 
-/* .hint-button {
-  display: inline-block;
-  width: 100px;
-  background-color: #e0e0e0;
-  border: 0.5px solid #e0e0e0;
-  border-radius: 3px;
-  color: #fff;
-  cursor: pointer;
-  font-size: 14px;
-  line-height: 1.2;
-  margin: 6px 10px;
-  padding: 6px 12px;
-  text-align: center;
-  text-decoration: none;
-  white-space: nowrap;
-} */
-
 .hint-button {
   width: 60%;
-  display: block;
+  display: inline-block;
   background-color: #1976d2;
   border: 1px solid #e0e0e0;
   border-radius: 3px;
@@ -80,6 +63,10 @@
   text-align: center;
   text-decoration: none;
   white-space: nowrap;
+}
+
+.hint-type-dialog {
+  width: 100px;
 }
 
 .planning {

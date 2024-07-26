@@ -17,47 +17,36 @@ export class HintTypeSelectionWidget extends ReactWidget {
   protected render(): React.ReactElement<any> {
     return (
       <div className="hint-type">
-        {/* <form> */}
+        You can request hints of the following types, but keep in mind you are
+        limited in the total number of hints you can request:
         <div>
           <label>
-            {/* <input type="radio" name="hint-type" value="planning" /> */}
-            <span className="hint-button planning">Planning</span> Show me how
-            to approach the problem step by step
+            <span className="hint-button planning hint-type-dialog">
+              Planning
+            </span>{' '}
+            A hint aimed at helping you start the assignment if you don't know
+            where to begin.
           </label>
         </div>
         <div>
           <label>
-            {/* <input
-                type="radio"
-                name="hint-type"
-                value="debugging"
-                checked={true}
-              /> */}
-            <span className="hint-button debugging">Debugging</span> Help me
-            debug the code
+            <span className="hint-button debugging hint-type-dialog">
+              Debugging
+            </span>{' '}
+            A hint which considers your partial solution and aims to provide
+            insight on why it might not be working as expected.
           </label>
         </div>
         <div>
           <label>
-            {/* <input type="radio" name="hint-type" value="optimizing" /> */}
-            <span className="hint-button optimizing">Optimizing</span> Assist me
-            in optimizing the speed / clarity of my program
+            <span className="hint-button optimizing hint-type-dialog">
+              Optimizing
+            </span>{' '}
+            A hint which aims to improve your already correct solution, helping
+            you optimize the code for best performance or readability.
           </label>
         </div>
-        {/* </form> */}
       </div>
     );
   }
 }
-
-// export const showHintTypeDialog = () => {
-//   return showDialog({
-//     title: 'Reflection',
-//     body: new ReflectionInputWidget(),
-//     buttons: [
-//       Dialog.createButton({ label: 'Cancel ' }),
-//       Dialog.createButton({ label: 'Submit' })
-//     ],
-//     hasClose: false
-//   });
-// };
