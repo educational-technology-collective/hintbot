@@ -5,11 +5,40 @@ import {
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
-import { Widget } from '@lumino/widgets';
+import { ICellModel } from '@jupyterlab/cells';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { requestHint } from './requestHint';
 import { HintTypeSelectionWidget } from './showHintTypeDialog';
 
+const handleHintButtonClick = async (
+  notebookPanel: NotebookPanel,
+  settings: ISettingRegistry.ISettings,
+  pioneer: IJupyterLabPioneer,
+  cell: ICellModel,
+  hintType: string
+) => {
+  if (notebookPanel.model.getMetadata('firstTimeUsingHintbot') === true) {
+    const dialogResult = await showDialog({
+      body: 'The hintbot extension is a prototype and not required to be used for the course. \n The hints generated could be wrong, and it involves sending data to third party services outside of the university.',
+      buttons: [
+        Dialog.cancelButton({
+          label: 'Cancel',
+          className: 'jp-mod-reject jp-mod-styled'
+        }),
+        Dialog.createButton({
+          label: 'Request hint',
+          className: 'jp-mod-accept jp-mod-styled'
+        })
+      ],
+      hasClose: false
+    });
+    if (dialogResult.button.label === 'Cancel') {
+      return;
+    }
+    notebookPanel.model.setMetadata('firstTimeUsingHintbot', false);
+  }
+  requestHint(notebookPanel, settings, pioneer, cell, hintType);
+};
 const activateHintBot = async (
   notebookPanel: NotebookPanel,
   settings: ISettingRegistry.ISettings,
@@ -17,6 +46,9 @@ const activateHintBot = async (
 ) => {
   const hintQuantity = settings.get('hintQuantity').composite as number;
   const cells = notebookPanel.content.model?.cells;
+
+  if (notebookPanel.model.getMetadata('firstTimeUsingHintbot') === undefined)
+    notebookPanel.model.setMetadata('firstTimeUsingHintbot', true);
 
   if (cells) {
     for (let i = 0; i < cells.length; i++) {
@@ -74,7 +106,7 @@ const activateHintBot = async (
         planning.innerText = 'Planning';
         planning.classList.add('hint-button', 'planning');
         planning.onclick = () =>
-          requestHint(
+          handleHintButtonClick(
             notebookPanel,
             settings,
             pioneer,
@@ -87,7 +119,7 @@ const activateHintBot = async (
         debugging.classList.add('hint-button', 'debugging');
 
         debugging.onclick = () =>
-          requestHint(
+          handleHintButtonClick(
             notebookPanel,
             settings,
             pioneer,
@@ -100,7 +132,7 @@ const activateHintBot = async (
         optimizing.classList.add('hint-button', 'optimizing');
 
         optimizing.onclick = () =>
-          requestHint(
+          handleHintButtonClick(
             notebookPanel,
             settings,
             pioneer,
@@ -130,56 +162,13 @@ const plugin: JupyterFrontEndPlugin<void> = {
     settingRegistry: ISettingRegistry,
     pioneer: IJupyterLabPioneer
   ) => {
-    const activationButton = document.createElement('button');
-    activationButton.innerText = 'Activate HintBot Extension';
-    activationButton.id = 'hintbot-activation-button';
-
-    const node = document.createElement('div');
-    node.appendChild(activationButton);
-
     const settings = await settingRegistry.load(plugin.id);
 
     notebookTracker.widgetAdded.connect(
       async (_, notebookPanel: NotebookPanel) => {
         await notebookPanel.revealed;
         await pioneer.loadExporters(notebookPanel);
-        notebookPanel.toolbar.insertAfter(
-          'spacer',
-          'hintbot-activation-button',
-          new Widget({ node: node })
-        );
-        activationButton.onclick = async () => {
-          const dialogResult = await showDialog({
-            body: 'The hintbot extension is a prototype and not required to be used for the course. \n The hints generated could be wrong, and it involves sending data to third party services outside of the university.',
-            buttons: [
-              Dialog.cancelButton({
-                label: 'Cancel',
-                className: 'jp-mod-reject jp-mod-styled'
-              }),
-              Dialog.createButton({
-                label: 'Confirm activation',
-                className: 'jp-mod-accept jp-mod-styled'
-              })
-            ],
-            hasClose: false
-          });
-          if (dialogResult.button.label === 'Confirm activation') {
-            await activateHintBot(notebookPanel, settings, pioneer);
-            activationButton.remove();
-
-            pioneer.exporters.forEach(exporter =>
-              pioneer.publishEvent(
-                notebookPanel,
-                {
-                  eventName: 'HintBotActivated',
-                  eventTime: Date.now()
-                },
-                exporter,
-                false
-              )
-            );
-          }
-        };
+        await activateHintBot(notebookPanel, settings, pioneer);
       }
     );
   }
