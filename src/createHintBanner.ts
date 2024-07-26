@@ -9,10 +9,12 @@ export const createHintBanner = async (
   notebookPanel: NotebookPanel,
   pioneer: IJupyterLabPioneer,
   cell: ICellModel,
-  postReflection: boolean,
-  reflectionGroup: number,
-  uuid: string
-  // hintType: string
+  // postReflection: boolean,
+  // reflectionGroup: number,
+  uuid: string,
+  preReflection: string,
+  hintType: string,
+  requestId: string
 ) => {
   const gradeId = cell.getMetadata('nbgrader').grade_id;
 
@@ -56,9 +58,10 @@ export const createHintBanner = async (
             hintContent: hintContent,
             gradeId: gradeId,
             requestId: requestId,
-            reflectionGroup: reflectionGroup,
-            uuid: uuid
-            // hintType: hintType
+            // reflectionGroup: reflectionGroup,
+            uuid: uuid,
+            preReflection: preReflection,
+            hintType: hintType
           }
         },
         exporter,
@@ -92,61 +95,62 @@ export const createHintBanner = async (
               requestId: requestId,
               hintContent: hintContent,
               evaluation: evaluation,
-              reflectionGroup: reflectionGroup,
-              uuid: uuid
-              // hintType: hintType
+              // reflectionGroup: reflectionGroup,
+              uuid: uuid,
+              preReflection: preReflection,
+              hintType: hintType
             }
           },
           exporter,
           true
         );
       });
-      if (postReflection) {
-        const postReflectionPrompts = [
-          'Considering the hint you just received and your solution thus far, what steps will you take next to move forward on the question?',
-          'Considering the hint you just received and your solution thus far, are there other topics from the course material you should be incorporating into your solution?',
-          'Considering the hint you just received and your solution thus far, was your general approach a good one, or should you change to an alternative approach to solve the step of the question you are working on?'
-        ];
+      // if (postReflection) {
+      //   const postReflectionPrompts = [
+      //     'Considering the hint you just received and your solution thus far, what steps will you take next to move forward on the question?',
+      //     'Considering the hint you just received and your solution thus far, are there other topics from the course material you should be incorporating into your solution?',
+      //     'Considering the hint you just received and your solution thus far, was your general approach a good one, or should you change to an alternative approach to solve the step of the question you are working on?'
+      //   ];
 
-        const randomIndex = Math.floor(
-          Math.random() * postReflectionPrompts.length
-        );
+      //   const randomIndex = Math.floor(
+      //     Math.random() * postReflectionPrompts.length
+      //   );
 
-        const dialogResult = await showReflectionDialog(
-          postReflectionPrompts[randomIndex]
-        );
+      //   const dialogResult = await showReflectionDialog(
+      //     postReflectionPrompts[randomIndex]
+      //   );
 
-        if (dialogResult.button.label === 'Submit') {
-          hintBanner.remove();
-          hintBannerPlaceholder.remove();
-        }
+      //   if (dialogResult.button.label === 'Submit') {
+      //     hintBanner.remove();
+      //     hintBannerPlaceholder.remove();
+      //   }
 
-        pioneer.exporters.forEach(exporter => {
-          pioneer.publishEvent(
-            notebookPanel,
-            {
-              eventName: 'PostReflection',
-              eventTime: Date.now(),
-              eventInfo: {
-                status: dialogResult.button.label,
-                gradeId: gradeId,
-                requestId: requestId,
-                hintContent: hintContent,
-                prompt: randomIndex,
-                reflection: dialogResult.value,
-                reflectionGroup: reflectionGroup,
-                uuid: uuid
-                // hintType: hintType
-              }
-            },
-            exporter,
-            true
-          );
-        });
-      } else {
-        hintBanner.remove();
-        hintBannerPlaceholder.remove();
-      }
+      //   pioneer.exporters.forEach(exporter => {
+      //     pioneer.publishEvent(
+      //       notebookPanel,
+      //       {
+      //         eventName: 'PostReflection',
+      //         eventTime: Date.now(),
+      //         eventInfo: {
+      //           status: dialogResult.button.label,
+      //           gradeId: gradeId,
+      //           requestId: requestId,
+      //           hintContent: hintContent,
+      //           prompt: randomIndex,
+      //           reflection: dialogResult.value,
+      //           reflectionGroup: reflectionGroup,
+      //           uuid: uuid
+      //           // hintType: hintType
+      //         }
+      //       },
+      //       exporter,
+      //       true
+      //     );
+      //   });
+      // } else {
+      hintBanner.remove();
+      hintBannerPlaceholder.remove();
+      // }
     };
     helpfulButton.onclick = () => {
       hintBannerButtonClicked('helpful');
@@ -182,8 +186,10 @@ export const createHintBanner = async (
           eventInfo: {
             gradeId: gradeId,
             requestId: requestId,
-            reflectionGroup: reflectionGroup,
-            uuid: uuid
+            // reflectionGroup: reflectionGroup,
+            uuid: uuid,
+            preReflection: preReflection,
+            hintType: hintType
           }
         },
         exporter,
@@ -219,8 +225,10 @@ export const createHintBanner = async (
           eventInfo: {
             gradeId: gradeId,
             requestId: e?.message,
-            reflectionGroup: reflectionGroup,
-            uuid: uuid
+            // reflectionGroup: reflectionGroup,
+            uuid: uuid,
+            preReflection: preReflection,
+            hintType: hintType
           }
         },
         exporter,
@@ -237,24 +245,22 @@ export const createHintBanner = async (
   };
 
   try {
-    const response: any = await requestAPI('hint', {
+    const response: any = await requestAPI('reflection', {
       method: 'POST',
       body: JSON.stringify({
-        // hint_type: hintType,
-        problem_id: gradeId,
-        buggy_notebook_path: notebookPanel.context.path
+        request_id: requestId,
+        pre_reflection: preReflection
       })
     });
-    console.log('create ticket', response);
-    const requestId = response?.request_id;
-    if (!requestId) {
+    console.log('Sent reflection', response);
+    if (!response) {
       throw new Error();
     } else {
       const intervalId = setInterval(async () => {
         const response: any = await requestAPI('check', {
           method: 'POST',
           body: JSON.stringify({
-            problem_id: gradeId
+            request_id: requestId
           })
         });
 

@@ -114,27 +114,49 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                 if response.status_code == 200:
                     request_id = json.loads(response.json()["body"])["request_id"]
                     print(f"Received ticket: {request_id}, waiting for the hint to be generated...")
-
-                    newjob = Job(time_limit=240, request_id=request_id)
-                    newjob.run()
-                    self.extensionapp.jobs[problem_id] = newjob
-
                     self.write(response.json()["body"])
                 else:
                     self.write("request ticket error")
 
+            elif resource == "reflection":
+                request_id = body.get('request_id')
+                reflection = body.get('reflection')
+                response = requests.post(
+                    HOST_URL,
+                    json={
+                        "method": "POST",
+                        "port": "9002",
+                        "path": "feedback_generation/query/",
+                        "body": {
+                            "request_id": request_id,
+                            "reflection": reflection,
+                        }
+                    },
+                    timeout=10
+                )
+                if response.status_code == 200:
+                    request_id = json.loads(response.json()["body"])["request_id"]
+                    print(f"Sent reflection for Request #{request_id}, waiting for the hint to be generated...")
+
+                    newjob = Job(time_limit=240, request_id=request_id)
+                    newjob.run()
+                    self.extensionapp.jobs[request_id] = newjob
+
+                    self.write(response.json()["body"])
+                else:
+                    self.write("request ticket error")
             elif resource == "check":
-                problem_id = body.get('problem_id')
+                request_id = body.get('request_id')
                 self.write({
-                    "status": self.extensionapp.jobs.get(problem_id).status,
-                    "result": self.extensionapp.jobs.get(problem_id).result
+                    "status": self.extensionapp.jobs.get(request_id).status,
+                    "result": self.extensionapp.jobs.get(request_id).result
                 })
-                if self.extensionapp.jobs.get(problem_id).status != STATUS["Loading"]:
-                    del self.extensionapp.jobs[problem_id]
+                if self.extensionapp.jobs.get(request_id).status != STATUS["Loading"]:
+                    del self.extensionapp.jobs[request_id]
 
             elif resource == "cancel":
-                problem_id = body.get('problem_id')
-                self.extensionapp.jobs[problem_id].cancel()
+                request_id = body.get('request_id')
+                self.extensionapp.jobs[request_id].cancel()
 
             else:
                 self.set_status(404)

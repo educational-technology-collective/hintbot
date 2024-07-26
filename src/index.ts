@@ -8,7 +8,7 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { Widget } from '@lumino/widgets';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { requestHint } from './requestHint';
-// import { HintTypeSelectionWidget } from './showHintTypeDialog';
+import { HintTypeSelectionWidget } from './showHintTypeDialog';
 
 const activateHintBot = async (
   notebookPanel: NotebookPanel,
@@ -32,105 +32,105 @@ const activateHintBot = async (
         ].includes(cells.get(i).getMetadata('nbgrader')?.grade_id)
         // hardcode question identifier, to be removed after notebook updated and deployed
       ) {
-        const hintButton = document.createElement('button');
-        hintButton.classList.add('hint-button');
-        hintButton.id = cells.get(i).getMetadata('nbgrader').grade_id;
-        hintButton.onclick = () =>
-          requestHint(notebookPanel, settings, pioneer, cells.get(i));
-        notebookPanel.content.widgets[i].node.appendChild(hintButton);
+        // const hintButton = document.createElement('button');
+        // hintButton.classList.add('hint-button');
+        // hintButton.id = cells.get(i).getMetadata('nbgrader').grade_id;
+        // hintButton.onclick = () =>
+        //   requestHint(notebookPanel, settings, pioneer, cells.get(i));
+        // notebookPanel.content.widgets[i].node.appendChild(hintButton);
 
-        if (cells.get(i).getMetadata('remaining_hints') === undefined) {
-          cells.get(i).setMetadata('remaining_hints', hintQuantity);
-          hintButton.innerText = `Hint (${hintQuantity} left for this question)`;
-        } else {
-          hintButton.innerText = `Hint (${cells
-            .get(i)
-            .getMetadata('remaining_hints')} left for this question)`;
-        }
-
-        // const hint = document.createElement('div');
-        // hint.classList.add('hint');
-
-        // const hintLeft = document.createElement('div');
-        // hintLeft.classList.add('hint-left');
-
-        // const helpText = document.createElement('div');
-        // helpText.classList.add('help-text');
-        // helpText.id = cells.get(i).getMetadata('nbgrader').grade_id;
-        // hintLeft.appendChild(helpText);
         // if (cells.get(i).getMetadata('remaining_hints') === undefined) {
         //   cells.get(i).setMetadata('remaining_hints', hintQuantity);
-        //   helpText.innerText = `Help (${hintQuantity} left for this question)`;
+        //   hintButton.innerText = `Hint (${hintQuantity} left for this question)`;
         // } else {
-        //   helpText.innerText = `Help (${cells
+        //   hintButton.innerText = `Hint (${cells
         //     .get(i)
         //     .getMetadata('remaining_hints')} left for this question)`;
         // }
 
-        // const hintTypeButton = document.createElement('button');
-        // hintTypeButton.classList.add('hint-type-button');
-        // hintTypeButton.innerText = ' ? ';
-        // hintTypeButton.onclick = () => {
-        //   showDialog({
-        //     body: new HintTypeSelectionWidget(),
-        //     buttons: [
-        //       Dialog.createButton({
-        //         label: 'Dismiss',
-        //         className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
-        //       })
-        //     ]
-        //   });
-        // };
-        // hintLeft.appendChild(hintTypeButton);
-        // hint.appendChild(hintLeft);
+        const hint = document.createElement('div');
+        hint.classList.add('hint');
 
-        // const hintButtons = document.createElement('div');
-        // hintButtons.classList.add('hint-buttons');
+        const hintLeft = document.createElement('div');
+        hintLeft.classList.add('hint-left');
 
-        // const planning = document.createElement('button');
-        // planning.innerText = 'planning';
-        // planning.classList.add('hint-button', 'planning');
-        // planning.onclick = () =>
-        //   requestHint(
-        //     notebookPanel,
-        //     settings,
-        //     pioneer,
-        //     cells.get(i),
-        //     'planning'
-        //   );
+        const helpText = document.createElement('div');
+        helpText.classList.add('help-text');
+        helpText.id = cells.get(i).getMetadata('nbgrader').grade_id;
+        hintLeft.appendChild(helpText);
+        if (cells.get(i).getMetadata('remaining_hints') === undefined) {
+          cells.get(i).setMetadata('remaining_hints', hintQuantity);
+          helpText.innerText = `Help (${hintQuantity} left for this question)`;
+        } else {
+          helpText.innerText = `Help (${cells
+            .get(i)
+            .getMetadata('remaining_hints')} left for this question)`;
+        }
 
-        // const debugging = document.createElement('button');
-        // debugging.innerText = 'debugging';
-        // debugging.classList.add('hint-button', 'debugging');
+        const hintTypeButton = document.createElement('button');
+        hintTypeButton.classList.add('hint-type-button');
+        hintTypeButton.innerText = ' ? ';
+        hintTypeButton.onclick = () => {
+          showDialog({
+            body: new HintTypeSelectionWidget(),
+            buttons: [
+              Dialog.createButton({
+                label: 'Dismiss',
+                className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
+              })
+            ]
+          });
+        };
+        hintLeft.appendChild(hintTypeButton);
+        hint.appendChild(hintLeft);
 
-        // debugging.onclick = () =>
-        //   requestHint(
-        //     notebookPanel,
-        //     settings,
-        //     pioneer,
-        //     cells.get(i),
-        //     'debugging'
-        //   );
+        const hintButtons = document.createElement('div');
+        hintButtons.classList.add('hint-buttons');
 
-        // const optimizing = document.createElement('button');
-        // optimizing.innerText = 'optimizing';
-        // optimizing.classList.add('hint-button', 'optimizing');
+        const planning = document.createElement('button');
+        planning.innerText = 'planning';
+        planning.classList.add('hint-button', 'planning');
+        planning.onclick = () =>
+          requestHint(
+            notebookPanel,
+            settings,
+            pioneer,
+            cells.get(i),
+            'planning'
+          );
 
-        // optimizing.onclick = () =>
-        //   requestHint(
-        //     notebookPanel,
-        //     settings,
-        //     pioneer,
-        //     cells.get(i),
-        //     'optimizing'
-        //   );
+        const debugging = document.createElement('button');
+        debugging.innerText = 'debugging';
+        debugging.classList.add('hint-button', 'debugging');
 
-        // hintButtons.appendChild(planning);
-        // hintButtons.appendChild(debugging);
-        // hintButtons.appendChild(optimizing);
-        // hint.appendChild(hintButtons);
+        debugging.onclick = () =>
+          requestHint(
+            notebookPanel,
+            settings,
+            pioneer,
+            cells.get(i),
+            'debugging'
+          );
 
-        // notebookPanel.content.widgets[i].node.appendChild(hint);
+        const optimizing = document.createElement('button');
+        optimizing.innerText = 'optimizing';
+        optimizing.classList.add('hint-button', 'optimizing');
+
+        optimizing.onclick = () =>
+          requestHint(
+            notebookPanel,
+            settings,
+            pioneer,
+            cells.get(i),
+            'optimizing'
+          );
+
+        hintButtons.appendChild(planning);
+        hintButtons.appendChild(debugging);
+        hintButtons.appendChild(optimizing);
+        hint.appendChild(hintButtons);
+
+        notebookPanel.content.widgets[i].node.appendChild(hint);
       }
     }
   }

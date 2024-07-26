@@ -125,6 +125,7 @@
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
+  overflow-y: auto;
 }
 
 #hint-banner-cancel-button {
