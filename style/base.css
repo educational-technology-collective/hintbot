@@ -25,12 +25,13 @@
 .hint-request-bar-left-text {
   font-size: 14px;
   line-height: 1.2;
+  color: #444;
 }
 
 .hint-request-bar-left-info-button {
   width: 25px;
   height: 25px;
-  background-color: #bbbaba;
+  background-color: #ccc;
   border: 0.5px solid #e0e0e0;
   border-radius: 50%;
   color: #fff;
@@ -85,6 +86,57 @@
 
 .optimizing {
   background-color: #7fc47f;
+}
+
+/* Hint History Bar */
+.hint-history-bar {
+  background-color: #f5f5f5;
+  margin: 10px auto 10px 72px;
+  border: 1px solid #e0e0e0;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+/* Style the buttons that are used to open and close the accordion panel */
+.accordion {
+  background-color: #f5f5f5;
+  color: #444;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  outline: none;
+  transition: 0.4s;
+}
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+.active,
+.accordion:hover {
+  background-color: #ccc;
+}
+
+/* Style the accordion panel. Note: hidden by default */
+.panel {
+  background-color: white;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+  padding: 0 18px 0 18px;
+}
+
+.accordion:after {
+  content: '\02795';
+  /* Unicode character for "plus" sign (+) */
+  font-size: 14px;
+  color: #777;
+  float: right;
+  margin-left: 5px;
+}
+
+.active:after {
+  content: '\2796';
+  /* Unicode character for "minus" sign (-) */
 }
 
 /* Hint Banner */

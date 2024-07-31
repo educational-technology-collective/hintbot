@@ -118,6 +118,59 @@ const activateHintBot = async (
     return hintRequestBar;
   };
 
+  const createHintHistoryBar = (cell: ICellModel) => {
+    const hintHistoryData = cell.getMetadata('hintHistory');
+    console.log(cell.id, hintHistoryData);
+    const hintHistoryBar = document.createElement('div');
+    hintHistoryBar.classList.add('hint-history-bar');
+    for (let i = 0; i < hintHistoryData.length; i++) {
+      const hintHistoryBarEntry = document.createElement('div');
+      const accordion = document.createElement('button');
+      accordion.classList.add('accordion');
+      accordion.innerText = `Click to review previous hint ${i + 1} (${
+        hintHistoryData[i][0]
+      })`;
+
+      const panel = document.createElement('div');
+      panel.classList.add('panel');
+      const historyText = document.createElement('p');
+      historyText.classList.add();
+      historyText.innerText = hintHistoryData[i][1];
+      panel.appendChild(historyText);
+      hintHistoryBarEntry.appendChild(accordion);
+      hintHistoryBarEntry.appendChild(panel);
+      hintHistoryBar.appendChild(hintHistoryBarEntry);
+
+      accordion.addEventListener('click', function () {
+        this.classList.toggle('active');
+        if (panel.style.maxHeight) {
+          panel.style.maxHeight = null;
+        } else {
+          panel.style.maxHeight = panel.scrollHeight + 'px';
+        }
+        if (this.classList.contains('active')) {
+          pioneer.exporters.forEach(exporter => {
+            pioneer.publishEvent(
+              notebookPanel,
+              {
+                eventName: 'HintHistoryReviewEvent',
+                eventTime: Date.now(),
+                eventInfo: {
+                  gradeId: cell.getMetadata('nbgrader').grade_id,
+                  hintType: hintHistoryData[i][0],
+                  hintContent: hintHistoryData[i][1]
+                }
+              },
+              exporter,
+              true
+            );
+          });
+        }
+      });
+    }
+    return hintHistoryBar;
+  };
+
   if (notebookPanel.model.getMetadata('firstTimeUsingHintbot') === undefined)
     notebookPanel.model.setMetadata('firstTimeUsingHintbot', true);
 
@@ -141,7 +194,9 @@ const activateHintBot = async (
           ['optimizing', 'optimizing hint']
         ]);
         const hintRequestBar = createHintRequestBar(cells.get(i), hintQuantity);
+        const hintHistoryBar = createHintHistoryBar(cells.get(i));
         notebookPanel.content.widgets[i].node.appendChild(hintRequestBar);
+        notebookPanel.content.widgets[i].node.appendChild(hintHistoryBar);
       }
     }
   }
