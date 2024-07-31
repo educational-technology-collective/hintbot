@@ -48,6 +48,8 @@ export const createHintBanner = async (
   };
 
   const hintRequestCompleted = (hintContent: string, requestId: string) => {
+    const hintHistory = cell.getMetadata('hintHistory') || [];
+    cell.setMetadata('hintHistory', [...hintHistory, [hintType, hintContent]]);
     pioneer.exporters.forEach(exporter => {
       pioneer.publishEvent(
         notebookPanel,
@@ -105,52 +107,8 @@ export const createHintBanner = async (
           true
         );
       });
-      // if (postReflection) {
-      //   const postReflectionPrompts = [
-      //     'Considering the hint you just received and your solution thus far, what steps will you take next to move forward on the question?',
-      //     'Considering the hint you just received and your solution thus far, are there other topics from the course material you should be incorporating into your solution?',
-      //     'Considering the hint you just received and your solution thus far, was your general approach a good one, or should you change to an alternative approach to solve the step of the question you are working on?'
-      //   ];
-
-      //   const randomIndex = Math.floor(
-      //     Math.random() * postReflectionPrompts.length
-      //   );
-
-      //   const dialogResult = await showReflectionDialog(
-      //     postReflectionPrompts[randomIndex]
-      //   );
-
-      //   if (dialogResult.button.label === 'Submit') {
-      //     hintBanner.remove();
-      //     hintBannerPlaceholder.remove();
-      //   }
-
-      //   pioneer.exporters.forEach(exporter => {
-      //     pioneer.publishEvent(
-      //       notebookPanel,
-      //       {
-      //         eventName: 'PostReflection',
-      //         eventTime: Date.now(),
-      //         eventInfo: {
-      //           status: dialogResult.button.label,
-      //           gradeId: gradeId,
-      //           requestId: requestId,
-      //           hintContent: hintContent,
-      //           prompt: randomIndex,
-      //           reflection: dialogResult.value,
-      //           reflectionGroup: reflectionGroup,
-      //           uuid: uuid
-      //           // hintType: hintType
-      //         }
-      //       },
-      //       exporter,
-      //       true
-      //     );
-      //   });
-      // } else {
       hintBanner.remove();
       hintBannerPlaceholder.remove();
-      // }
     };
     helpfulButton.onclick = () => {
       hintBannerButtonClicked('helpful');
@@ -202,6 +160,10 @@ export const createHintBanner = async (
     hintBanner.remove();
     hintBannerPlaceholder.remove();
 
+    document.getElementById(gradeId).innerText = `Request Hint (${
+      cell.getMetadata('remaining_hints') + 1
+    } left for this question)`;
+
     cell.setMetadata(
       'remaining_hints',
       cell.getMetadata('remaining_hints') + 1
@@ -216,6 +178,7 @@ export const createHintBanner = async (
         })
       ]
     });
+
     pioneer.exporters.forEach(exporter => {
       pioneer.publishEvent(
         notebookPanel,

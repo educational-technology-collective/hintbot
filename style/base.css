@@ -3,7 +3,9 @@
 
     https://jupyterlab.readthedocs.io/en/stable/developer/css.html
 */
-.hint {
+
+/* Hint Request Bar */
+.hint-request-bar {
   background-color: #f5f5f5;
   display: flex;
   margin: 10px auto 10px 72px;
@@ -12,7 +14,7 @@
   padding: 5px 10px;
 }
 
-.hint-left {
+.hint-request-bar-left {
   display: flex;
   width: 40%;
   justify-content: flex-start;
@@ -20,12 +22,12 @@
   padding-left: 10px;
 }
 
-.help-text {
+.hint-request-bar-left-text {
   font-size: 14px;
   line-height: 1.2;
 }
 
-.hint-type-button {
+.hint-request-bar-left-info-button {
   width: 25px;
   height: 25px;
   background-color: #bbbaba;
@@ -41,13 +43,13 @@
   margin-left: 10px;
 }
 
-.hint-buttons {
+.hint-request-bar-right {
   display: flex;
   justify-content: flex-end;
   width: 60%;
 }
 
-.hint-button {
+.hint-request-bar-right-request-button {
   width: 60%;
   display: inline-block;
   background-color: #1976d2;
@@ -65,7 +67,11 @@
   white-space: nowrap;
 }
 
-.hint-type-dialog {
+.hint-info {
+  line-height: 40px;
+}
+
+.hint-info span {
   width: 100px;
 }
 
@@ -81,10 +87,7 @@
   background-color: #7fc47f;
 }
 
-.hint-type {
-  line-height: 40px;
-}
-
+/* Hint Banner */
 :root {
   --hint-banner-height: 25vh;
 }
