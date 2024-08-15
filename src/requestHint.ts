@@ -68,11 +68,16 @@ export const requestHint = async (
     });
   } else {
     const uuid = uuidv4();
+    const hintTypeMap = new Map([
+      ['planning', 'plan'],
+      ['debugging', 'debug'],
+      ['optimizing', 'optimize']
+    ]);
 
     const response: any = await requestAPI('hint', {
       method: 'POST',
       body: JSON.stringify({
-        hint_type: hintType,
+        hint_type: hintTypeMap.get(hintType),
         problem_id: gradeId,
         buggy_notebook_path: notebookPanel.context.path
       })
@@ -113,7 +118,7 @@ export const requestHint = async (
           eventInfo: {
             status: dialogResult.button.label,
             gradeId: gradeId,
-            prompt: randomIndex,
+            prompt: preReflectionPrompts[randomIndex],
             reflection: dialogResult.value,
             // reflectionGroup: reflectionGroup,
             uuid: uuid,
@@ -136,7 +141,7 @@ export const requestHint = async (
         notebookPanel,
         pioneer,
         cell,
-        // reflectionGroup,
+        preReflectionPrompts[randomIndex],
         uuid,
         dialogResult.value,
         hintType,

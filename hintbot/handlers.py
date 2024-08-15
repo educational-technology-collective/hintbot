@@ -90,7 +90,7 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
         try:
             body = json.loads(self.request.body)
             if resource == "hint":
-                # hint_type = body.get('hint_type')
+                hint_type = body.get('hint_type')
                 problem_id = body.get('problem_id')
                 buggy_notebook_path = body.get('buggy_notebook_path')
                 f = open(buggy_notebook_path, "rb")
@@ -104,6 +104,7 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                         "body": {
                             "student_id": os.getenv('WORKSPACE_ID'),
                             "problem_id": problem_id,
+                            "hint_type": hint_type,
                             "file": json.dumps(json.load(f)),
                         }
                     },
@@ -120,7 +121,8 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
 
             elif resource == "reflection":
                 request_id = body.get('request_id')
-                reflection = body.get('reflection')
+                reflection_question = body.get('reflection_question')
+                reflection_answer = body.get('reflection_answer')
                 response = requests.post(
                     HOST_URL,
                     json={
@@ -129,7 +131,8 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                         "path": "feedback_generation/query/",
                         "body": {
                             "request_id": request_id,
-                            "reflection": reflection,
+                            "reflection_question": reflection_question,
+                            "reflection_answer": reflection_answer,
                         }
                     },
                     timeout=10
@@ -140,7 +143,7 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
 
                     newjob = Job(time_limit=240, request_id=request_id)
                     newjob.run()
-                    self.extensionapp.jobs[request_id] = newjob
+                    self.extensionapp.jobs[str(request_id)] = newjob
 
                     self.write(response.json()["body"])
                 else:
@@ -148,15 +151,15 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
             elif resource == "check":
                 request_id = body.get('request_id')
                 self.write({
-                    "status": self.extensionapp.jobs.get(request_id).status,
-                    "result": self.extensionapp.jobs.get(request_id).result
+                    "status": self.extensionapp.jobs.get(str(request_id)).status,
+                    "result": self.extensionapp.jobs.get(str(request_id)).result
                 })
-                if self.extensionapp.jobs.get(request_id).status != STATUS["Loading"]:
-                    del self.extensionapp.jobs[request_id]
+                if self.extensionapp.jobs.get(str(request_id)).status != STATUS["Loading"]:
+                    del self.extensionapp.jobs[str(request_id)]
 
             elif resource == "cancel":
                 request_id = body.get('request_id')
-                self.extensionapp.jobs[request_id].cancel()
+                self.extensionapp.jobs[str(request_id)].cancel()
 
             else:
                 self.set_status(404)

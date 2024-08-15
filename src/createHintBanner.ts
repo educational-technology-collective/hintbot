@@ -2,7 +2,6 @@ import { NotebookPanel } from '@jupyterlab/notebook';
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { ICellModel } from '@jupyterlab/cells';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
-import { showReflectionDialog } from './showReflectionDialog';
 import { requestAPI } from './handler';
 
 export const createHintBanner = async (
@@ -10,7 +9,7 @@ export const createHintBanner = async (
   pioneer: IJupyterLabPioneer,
   cell: ICellModel,
   // postReflection: boolean,
-  // reflectionGroup: number,
+  reflectionQuestion: string,
   uuid: string,
   preReflection: string,
   hintType: string,
@@ -212,7 +211,8 @@ export const createHintBanner = async (
       method: 'POST',
       body: JSON.stringify({
         request_id: requestId,
-        pre_reflection: preReflection
+        reflection_question: reflectionQuestion,
+        reflection_answer: preReflection
       })
     });
     console.log('Sent reflection', response);
