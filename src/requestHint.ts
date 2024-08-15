@@ -13,6 +13,7 @@ export const requestHint = async (
   settings: ISettingRegistry.ISettings,
   pioneer: IJupyterLabPioneer,
   cell: ICellModel,
+  cellIndex: number,
   hintType: string
 ) => {
   const gradeId = cell.getMetadata('nbgrader')?.grade_id;
@@ -141,6 +142,7 @@ export const requestHint = async (
         notebookPanel,
         pioneer,
         cell,
+        cellIndex,
         preReflectionPrompts[randomIndex],
         uuid,
         dialogResult.value,

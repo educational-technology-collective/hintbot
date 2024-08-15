@@ -3,11 +3,13 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { ICellModel } from '@jupyterlab/cells';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { requestAPI } from './handler';
+import { createHintHistoryBar } from './createHintHistoryBar'
 
 export const createHintBanner = async (
   notebookPanel: NotebookPanel,
   pioneer: IJupyterLabPioneer,
   cell: ICellModel,
+  cellIndex: number,
   // postReflection: boolean,
   reflectionQuestion: string,
   uuid: string,
@@ -234,6 +236,7 @@ export const createHintBanner = async (
           console.log('success');
           clearInterval(intervalId);
           hintRequestCompleted(JSON.parse(response.result).feedback, requestId);
+          createHintHistoryBar(cell, cellIndex, notebookPanel, pioneer);
         } else if (response.status === STATUS['Cancelled']) {
           console.log('cancelled');
           clearInterval(intervalId);

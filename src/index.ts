@@ -9,6 +9,7 @@ import { ICellModel } from '@jupyterlab/cells';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { requestHint } from './requestHint';
 import { HintTypeSelectionWidget } from './showHintTypeDialog';
+import { createHintHistoryBar } from './createHintHistoryBar';
 
 const activateHintBot = async (
   notebookPanel: NotebookPanel,
@@ -18,7 +19,11 @@ const activateHintBot = async (
   const hintQuantity = settings.get('hintQuantity').composite as number;
   const cells = notebookPanel.content.model?.cells;
 
-  const handleHintButtonClick = async (cell: ICellModel, hintType: string) => {
+  const handleHintButtonClick = async (
+    cell: ICellModel,
+    cellIndex: number,
+    hintType: string
+  ) => {
     if (notebookPanel.model.getMetadata('firstTimeUsingHintbot') === true) {
       const dialogResult = await showDialog({
         body: 'The hintbot extension is a prototype and not required to be used for the course. \n The hints generated could be wrong, and it involves sending data to third party services outside of the university.',
@@ -39,10 +44,14 @@ const activateHintBot = async (
       }
       notebookPanel.model.setMetadata('firstTimeUsingHintbot', false);
     }
-    requestHint(notebookPanel, settings, pioneer, cell, hintType);
+    requestHint(notebookPanel, settings, pioneer, cell, cellIndex, hintType);
   };
 
-  const createHintRequestBar = (cell: ICellModel, hintQuantity: number) => {
+  const createHintRequestBar = (
+    cell: ICellModel,
+    cellIndex: number,
+    hintQuantity: number
+  ) => {
     const hintRequestBar = document.createElement('div');
     hintRequestBar.classList.add('hint-request-bar');
 
@@ -88,7 +97,7 @@ const activateHintBot = async (
     const planning = document.createElement('button');
     planning.innerText = 'Planning';
     planning.classList.add('hint-request-bar-right-request-button', 'planning');
-    planning.onclick = () => handleHintButtonClick(cell, 'planning');
+    planning.onclick = () => handleHintButtonClick(cell, cellIndex, 'planning');
 
     const debugging = document.createElement('button');
     debugging.innerText = 'Debugging';
@@ -97,7 +106,8 @@ const activateHintBot = async (
       'debugging'
     );
 
-    debugging.onclick = () => handleHintButtonClick(cell, 'debugging');
+    debugging.onclick = () =>
+      handleHintButtonClick(cell, cellIndex, 'debugging');
 
     const optimizing = document.createElement('button');
     optimizing.innerText = 'Optimizing';
@@ -106,7 +116,8 @@ const activateHintBot = async (
       'optimizing'
     );
 
-    optimizing.onclick = () => handleHintButtonClick(cell, 'optimizing');
+    optimizing.onclick = () =>
+      handleHintButtonClick(cell, cellIndex, 'optimizing');
 
     hintRequestBarRight.appendChild(planning);
     hintRequestBarRight.appendChild(debugging);
@@ -116,59 +127,6 @@ const activateHintBot = async (
     hintRequestBar.appendChild(hintRequestBarRight);
 
     return hintRequestBar;
-  };
-
-  const createHintHistoryBar = (cell: ICellModel) => {
-    const hintHistoryData = cell.getMetadata('hintHistory');
-    console.log(cell.id, hintHistoryData);
-    const hintHistoryBar = document.createElement('div');
-    hintHistoryBar.classList.add('hint-history-bar');
-    for (let i = 0; i < hintHistoryData.length; i++) {
-      const hintHistoryBarEntry = document.createElement('div');
-      const accordion = document.createElement('button');
-      accordion.classList.add('accordion');
-      accordion.innerText = `Click to review previous hint ${i + 1} (${
-        hintHistoryData[i][0]
-      })`;
-
-      const panel = document.createElement('div');
-      panel.classList.add('panel');
-      const historyText = document.createElement('p');
-      historyText.classList.add();
-      historyText.innerText = hintHistoryData[i][1];
-      panel.appendChild(historyText);
-      hintHistoryBarEntry.appendChild(accordion);
-      hintHistoryBarEntry.appendChild(panel);
-      hintHistoryBar.appendChild(hintHistoryBarEntry);
-
-      accordion.addEventListener('click', function () {
-        this.classList.toggle('active');
-        if (panel.style.maxHeight) {
-          panel.style.maxHeight = null;
-        } else {
-          panel.style.maxHeight = panel.scrollHeight + 'px';
-        }
-        if (this.classList.contains('active')) {
-          pioneer.exporters.forEach(exporter => {
-            pioneer.publishEvent(
-              notebookPanel,
-              {
-                eventName: 'HintHistoryReviewEvent',
-                eventTime: Date.now(),
-                eventInfo: {
-                  gradeId: cell.getMetadata('nbgrader').grade_id,
-                  hintType: hintHistoryData[i][0],
-                  hintContent: hintHistoryData[i][1]
-                }
-              },
-              exporter,
-              true
-            );
-          });
-        }
-      });
-    }
-    return hintHistoryBar;
   };
 
   if (notebookPanel.model.getMetadata('firstTimeUsingHintbot') === undefined)
@@ -187,16 +145,13 @@ const activateHintBot = async (
           'cell-018440eg2f1b6a62'
         ].includes(cells.get(i).getMetadata('nbgrader')?.grade_id)
       ) {
-        // test code
-        cells.get(i).setMetadata('hintHistory', [
-          ['planning', 'planning hint'],
-          ['debugging', 'debugging hint'],
-          ['optimizing', 'optimizing hint']
-        ]);
-        const hintRequestBar = createHintRequestBar(cells.get(i), hintQuantity);
-        const hintHistoryBar = createHintHistoryBar(cells.get(i));
+        const hintRequestBar = createHintRequestBar(
+          cells.get(i),
+          i,
+          hintQuantity
+        );
         notebookPanel.content.widgets[i].node.appendChild(hintRequestBar);
-        notebookPanel.content.widgets[i].node.appendChild(hintHistoryBar);
+        createHintHistoryBar(cells.get(i), i, notebookPanel, pioneer);
       }
     }
   }
