@@ -96,16 +96,14 @@ export const requestHint = async (
     // if (preReflection) {
     // document.getElementById('hint-banner').style.filter = 'blur(10px)';
 
-    const preReflectionPrompts = [
-      'Considering your submission and the feedback you have gotten from the system thus far, what are the steps you think must be followed in order to answer this question, and which step is the one you are currently stuck on?',
-      'Considering your submission and the feedback you have gotten from the system thus far, which topics in the course do you think are most relevant to the current problem you are facing?',
-      'Considering your submission and the feedback you have gotten from the system thus far, is there an alternative approach which you can try to to solve the step of the question you are working on?'
-    ];
-
-    const randomIndex = Math.floor(Math.random() * preReflectionPrompts.length);
+    const reflectionPromptMap = new Map([
+      ['planning', 'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program plan, i.e., problem-solving steps of the program? When writing your reflection, consider which steps in your program plan could be improved and how do you think the program plan can be updated to solve this question.'],
+      ['debugging', 'Considering your program and the feedback you have received from the system so far, what do you think is a possible bug in the program? When writing your reflection, consider how the bug affects the program and what do you think is a way to fix the bug.'],
+      ['optimizing', 'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program in terms of performance (e.g., speed or memory usage) and readability?When writing your reflection, consider which parts of the program needs to be optimized and how do you think the program can be updated for optimization.']
+    ])
 
     const dialogResult = await showReflectionDialog(
-      preReflectionPrompts[randomIndex]
+      reflectionPromptMap.get(hintType)
     );
 
     // document.getElementById('hint-banner').style.filter = 'none';
@@ -119,7 +117,7 @@ export const requestHint = async (
           eventInfo: {
             status: dialogResult.button.label,
             gradeId: gradeId,
-            prompt: preReflectionPrompts[randomIndex],
+            prompt: reflectionPromptMap.get(hintType),
             reflection: dialogResult.value,
             // reflectionGroup: reflectionGroup,
             uuid: uuid,
@@ -143,7 +141,7 @@ export const requestHint = async (
         pioneer,
         cell,
         cellIndex,
-        preReflectionPrompts[randomIndex],
+        reflectionPromptMap.get(hintType),
         uuid,
         dialogResult.value,
         hintType,
