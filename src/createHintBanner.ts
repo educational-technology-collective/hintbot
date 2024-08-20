@@ -3,7 +3,7 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { ICellModel } from '@jupyterlab/cells';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { requestAPI } from './handler';
-import { createHintHistoryBar } from './createHintHistoryBar'
+import { createHintHistoryBar } from './createHintHistoryBar';
 
 export const createHintBanner = async (
   notebookPanel: NotebookPanel,

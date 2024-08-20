@@ -97,10 +97,19 @@ export const requestHint = async (
     // document.getElementById('hint-banner').style.filter = 'blur(10px)';
 
     const reflectionPromptMap = new Map([
-      ['planning', 'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program plan, i.e., problem-solving steps of the program? When writing your reflection, consider which steps in your program plan could be improved and how do you think the program plan can be updated to solve this question.'],
-      ['debugging', 'Considering your program and the feedback you have received from the system so far, what do you think is a possible bug in the program? When writing your reflection, consider how the bug affects the program and what do you think is a way to fix the bug.'],
-      ['optimizing', 'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program in terms of performance (e.g., speed or memory usage) and readability?When writing your reflection, consider which parts of the program needs to be optimized and how do you think the program can be updated for optimization.']
-    ])
+      [
+        'planning',
+        'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program plan, i.e., problem-solving steps of the program? When writing your reflection, consider which steps in your program plan could be improved and how do you think the program plan can be updated to solve this question.'
+      ],
+      [
+        'debugging',
+        'Considering your program and the feedback you have received from the system so far, what do you think is a possible bug in the program? When writing your reflection, consider how the bug affects the program and what do you think is a way to fix the bug.'
+      ],
+      [
+        'optimizing',
+        'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program in terms of performance (e.g., speed or memory usage) and readability?When writing your reflection, consider which parts of the program needs to be optimized and how do you think the program can be updated for optimization.'
+      ]
+    ]);
 
     const dialogResult = await showReflectionDialog(
       reflectionPromptMap.get(hintType)

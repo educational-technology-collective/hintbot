@@ -12,55 +12,56 @@ export const createHintHistoryBar = (
     document.getElementById(`hint-history-bar-${cell.id}`).remove();
   }
   const hintHistoryData = cell.getMetadata('hintHistory');
-  console.log(cell.id, hintHistoryData);
   const hintHistoryBar = document.createElement('div');
   hintHistoryBar.classList.add('hint-history-bar');
   hintHistoryBar.id = `hint-history-bar-${cell.id}`;
 
-  for (let i = 0; i < hintHistoryData.length; i++) {
-    const hintHistoryBarEntry = document.createElement('div');
-    const accordion = document.createElement('button');
-    accordion.classList.add('accordion');
-    accordion.innerText = `Click to review previous hint ${i + 1} (${
-      hintHistoryData[i][0]
-    })`;
+  if (hintHistoryData && hintHistoryData.length > 0) {
+    for (let i = 0; i < hintHistoryData.length; i++) {
+      const hintHistoryBarEntry = document.createElement('div');
+      const accordion = document.createElement('button');
+      accordion.classList.add('accordion');
+      accordion.innerText = `Click to review previous hint ${i + 1} (${
+        hintHistoryData[i][0]
+      })`;
 
-    const panel = document.createElement('div');
-    panel.classList.add('panel');
-    const historyText = document.createElement('p');
-    historyText.classList.add();
-    historyText.innerText = hintHistoryData[i][1];
-    panel.appendChild(historyText);
-    hintHistoryBarEntry.appendChild(accordion);
-    hintHistoryBarEntry.appendChild(panel);
-    hintHistoryBar.appendChild(hintHistoryBarEntry);
+      const panel = document.createElement('div');
+      panel.classList.add('panel');
+      const historyText = document.createElement('p');
+      historyText.classList.add();
+      historyText.innerText = hintHistoryData[i][1];
+      panel.appendChild(historyText);
+      hintHistoryBarEntry.appendChild(accordion);
+      hintHistoryBarEntry.appendChild(panel);
+      hintHistoryBar.appendChild(hintHistoryBarEntry);
 
-    accordion.addEventListener('click', function () {
-      this.classList.toggle('active');
-      if (panel.style.maxHeight) {
-        panel.style.maxHeight = null;
-      } else {
-        panel.style.maxHeight = panel.scrollHeight + 'px';
-      }
-      if (this.classList.contains('active')) {
-        pioneer.exporters.forEach(exporter => {
-          pioneer.publishEvent(
-            notebookPanel,
-            {
-              eventName: 'HintHistoryReviewEvent',
-              eventTime: Date.now(),
-              eventInfo: {
-                gradeId: cell.getMetadata('nbgrader').grade_id,
-                hintType: hintHistoryData[i][0],
-                hintContent: hintHistoryData[i][1]
-              }
-            },
-            exporter,
-            true
-          );
-        });
-      }
-    });
+      accordion.addEventListener('click', function () {
+        this.classList.toggle('active');
+        if (panel.style.maxHeight) {
+          panel.style.maxHeight = null;
+        } else {
+          panel.style.maxHeight = panel.scrollHeight + 'px';
+        }
+        if (this.classList.contains('active')) {
+          pioneer.exporters.forEach(exporter => {
+            pioneer.publishEvent(
+              notebookPanel,
+              {
+                eventName: 'HintHistoryReviewEvent',
+                eventTime: Date.now(),
+                eventInfo: {
+                  gradeId: cell.getMetadata('nbgrader').grade_id,
+                  hintType: hintHistoryData[i][0],
+                  hintContent: hintHistoryData[i][1]
+                }
+              },
+              exporter,
+              true
+            );
+          });
+        }
+      });
+    }
+    notebookPanel.content.widgets[cellIndex].node.appendChild(hintHistoryBar);
   }
-  notebookPanel.content.widgets[cellIndex].node.appendChild(hintHistoryBar);
 };
