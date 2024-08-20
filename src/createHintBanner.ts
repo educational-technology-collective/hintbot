@@ -10,8 +10,8 @@ export const createHintBanner = async (
   pioneer: IJupyterLabPioneer,
   cell: ICellModel,
   cellIndex: number,
-  // postReflection: boolean,
-  reflectionQuestion: string,
+  promptGroup: string,
+  prompt: string,
   uuid: string,
   preReflection: string,
   hintType: string,
@@ -61,7 +61,8 @@ export const createHintBanner = async (
             hintContent: hintContent,
             gradeId: gradeId,
             requestId: requestId,
-            // reflectionGroup: reflectionGroup,
+            promptGroup: promptGroup,
+            prompt: prompt,
             uuid: uuid,
             preReflection: preReflection,
             hintType: hintType
@@ -98,7 +99,8 @@ export const createHintBanner = async (
               requestId: requestId,
               hintContent: hintContent,
               evaluation: evaluation,
-              // reflectionGroup: reflectionGroup,
+              promptGroup: promptGroup,
+              prompt: prompt,
               uuid: uuid,
               preReflection: preReflection,
               hintType: hintType
@@ -145,7 +147,8 @@ export const createHintBanner = async (
           eventInfo: {
             gradeId: gradeId,
             requestId: requestId,
-            // reflectionGroup: reflectionGroup,
+            promptGroup: promptGroup,
+            prompt: prompt,
             uuid: uuid,
             preReflection: preReflection,
             hintType: hintType
@@ -189,7 +192,8 @@ export const createHintBanner = async (
           eventInfo: {
             gradeId: gradeId,
             requestId: e?.message,
-            // reflectionGroup: reflectionGroup,
+            promptGroup: promptGroup,
+            prompt: prompt,
             uuid: uuid,
             preReflection: preReflection,
             hintType: hintType
@@ -213,7 +217,7 @@ export const createHintBanner = async (
       method: 'POST',
       body: JSON.stringify({
         request_id: requestId,
-        reflection_question: reflectionQuestion,
+        reflection_question: prompt,
         reflection_answer: preReflection
       })
     });

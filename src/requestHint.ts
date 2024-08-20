@@ -69,16 +69,48 @@ export const requestHint = async (
     });
   } else {
     const uuid = uuidv4();
-    const hintTypeMap = new Map([
-      ['planning', 'plan'],
-      ['debugging', 'debug'],
-      ['optimizing', 'optimize']
-    ]);
+
+    const workspace_id: string = await requestAPI('id');
+    const promptGroupNum =
+      workspace_id
+        .split('')
+        .map(c => c.charCodeAt(0) - 64)
+        .reduce((acc, val) => acc + val, 0) % 2;
+    const promptGroup = promptGroupNum === 0 ? 'promptA' : 'promptB';
+    console.log(`Condition ${promptGroup}`);
+
+    const configs = [
+      {
+        hintType: 'planning',
+        serverHintType: 'plan',
+        promptA:
+          'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program plan, i.e., problem-solving steps of the program?',
+        promptB:
+          'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program plan, i.e., problem-solving steps of the program? When writing your reflection, consider which steps in your program plan could be improved and how do you think the program plan can be updated to solve this question.'
+      },
+      {
+        hintType: 'debugging',
+        serverHintType: 'debug',
+        promptA:
+          'Considering your program and the feedback you have received from the system so far, what do you think is a possible bug in the program?',
+        promptB:
+          'Considering your program and the feedback you have received from the system so far, what do you think is a possible bug in the program? When writing your reflection, consider how the bug affects the program and what do you think is a way to fix the bug.'
+      },
+      {
+        hintType: 'optimizing',
+        serverHintType: 'optimize',
+        promptA:
+          'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program in terms of performance (e.g., speed or memory usage) and readability?',
+        promptB:
+          'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program in terms of performance (e.g., speed or memory usage) and readability? When writing your reflection, consider which parts of the program needs to be optimized and how do you think the program can be updated for optimization.'
+      }
+    ];
 
     const response: any = await requestAPI('hint', {
       method: 'POST',
       body: JSON.stringify({
-        hint_type: hintTypeMap.get(hintType),
+        hint_type: configs.find(config => config.hintType === hintType)
+          .serverHintType,
         problem_id: gradeId,
         buggy_notebook_path: notebookPanel.context.path
       })
@@ -93,29 +125,9 @@ export const requestHint = async (
     } left for this question)`;
     notebookPanel.context.save();
 
-    // if (preReflection) {
-    // document.getElementById('hint-banner').style.filter = 'blur(10px)';
-
-    const reflectionPromptMap = new Map([
-      [
-        'planning',
-        'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program plan, i.e., problem-solving steps of the program? When writing your reflection, consider which steps in your program plan could be improved and how do you think the program plan can be updated to solve this question.'
-      ],
-      [
-        'debugging',
-        'Considering your program and the feedback you have received from the system so far, what do you think is a possible bug in the program? When writing your reflection, consider how the bug affects the program and what do you think is a way to fix the bug.'
-      ],
-      [
-        'optimizing',
-        'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program in terms of performance (e.g., speed or memory usage) and readability?When writing your reflection, consider which parts of the program needs to be optimized and how do you think the program can be updated for optimization.'
-      ]
-    ]);
-
     const dialogResult = await showReflectionDialog(
-      reflectionPromptMap.get(hintType)
+      configs.find(config => config.hintType === hintType)[promptGroup]
     );
-
-    // document.getElementById('hint-banner').style.filter = 'none';
 
     pioneer.exporters.forEach(exporter => {
       pioneer.publishEvent(
@@ -126,11 +138,13 @@ export const requestHint = async (
           eventInfo: {
             status: dialogResult.button.label,
             gradeId: gradeId,
-            prompt: reflectionPromptMap.get(hintType),
-            reflection: dialogResult.value,
-            // reflectionGroup: reflectionGroup,
             uuid: uuid,
-            hintType: hintType
+            hintType: hintType,
+            promptGroup: promptGroup,
+            prompt: configs.find(config => config.hintType === hintType)[
+              promptGroup
+            ],
+            reflection: dialogResult.value
           }
         },
         exporter,
@@ -150,7 +164,8 @@ export const requestHint = async (
         pioneer,
         cell,
         cellIndex,
-        reflectionPromptMap.get(hintType),
+        promptGroup,
+        configs.find(config => config.hintType === hintType)[promptGroup],
         uuid,
         dialogResult.value,
         hintType,
