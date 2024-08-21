@@ -112,6 +112,7 @@ export const createHintBanner = async (
       });
       hintBanner.remove();
       hintBannerPlaceholder.remove();
+      createHintHistoryBar(cell, cellIndex, notebookPanel, pioneer);
     };
     helpfulButton.onclick = () => {
       hintBannerButtonClicked('helpful');
@@ -240,7 +241,6 @@ export const createHintBanner = async (
           console.log('success');
           clearInterval(intervalId);
           hintRequestCompleted(JSON.parse(response.result).feedback, requestId);
-          createHintHistoryBar(cell, cellIndex, notebookPanel, pioneer);
         } else if (response.status === STATUS['Cancelled']) {
           console.log('cancelled');
           clearInterval(intervalId);
