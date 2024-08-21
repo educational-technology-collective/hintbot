@@ -24,8 +24,8 @@ export class HintTypeSelectionWidget extends ReactWidget {
             <span className="hint-request-bar-right-request-button planning">
               Planning
             </span>{' '}
-            A hint aimed at helping you start the assignment if you don't know
-            where to begin.
+            A hint aimed at helping you to identify the steps needed to solve
+            the question.
           </label>
         </div>
         <div>
@@ -33,8 +33,8 @@ export class HintTypeSelectionWidget extends ReactWidget {
             <span className="hint-request-bar-right-request-button debugging">
               Debugging
             </span>{' '}
-            A hint which considers your partial solution and aims to provide
-            insight on why it might not be working as expected.
+            A hint aimed at helping you identify and fix a bug in your current
+            program.
           </label>
         </div>
         <div>
@@ -42,8 +42,8 @@ export class HintTypeSelectionWidget extends ReactWidget {
             <span className="hint-request-bar-right-request-button optimizing">
               Optimizing
             </span>{' '}
-            A hint which aims to improve your already correct solution, helping
-            you optimize the code for best performance or readability.
+            A hint aimed at helping you optimize your current program for better
+            performance and readability.
           </label>
         </div>
       </div>

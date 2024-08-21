@@ -84,25 +84,25 @@ export const requestHint = async (
         hintType: 'planning',
         serverHintType: 'plan',
         promptA:
-          'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program plan, i.e., problem-solving steps of the program?',
+          'Considering the program you wrote and the feedback you have received from the system so far, what do you think is a possible issue with the program plan and problem-solving steps?',
         promptB:
-          'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program plan, i.e., problem-solving steps of the program? When writing your reflection, consider which steps in your program plan could be improved and how do you think the program plan can be updated to solve this question.'
+          'Considering the program you wrote and the feedback you have received from the system so far, what do you think is a possible issue with the program plan and problem-solving steps? Which steps in your program plan could be improved? How do you think the program plan can be updated to solve this question?'
       },
       {
         hintType: 'debugging',
         serverHintType: 'debug',
         promptA:
-          'Considering your program and the feedback you have received from the system so far, what do you think is a possible bug in the program?',
+          'Considering the program you wrote and the feedback you have received from the system so far, what do you think is a possible bug in the program?',
         promptB:
-          'Considering your program and the feedback you have received from the system so far, what do you think is a possible bug in the program? When writing your reflection, consider how the bug affects the program and what do you think is a way to fix the bug.'
+          'Considering the program you wrote and the feedback you have received from the system so far, what do you think is a possible bug in the program? How does the bug affect the program? What do you think is a way to fix the bug?'
       },
       {
         hintType: 'optimizing',
         serverHintType: 'optimize',
         promptA:
-          'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program in terms of performance (e.g., speed or memory usage) and readability?',
+          'Considering the program you wrote and the feedback you have received from the system so far, what do you think is a possible issue with the program in terms of performance and readability?',
         promptB:
-          'Considering your program and the feedback you have received from the system so far, what do you think is a possible issue with the program in terms of performance (e.g., speed or memory usage) and readability? When writing your reflection, consider which parts of the program needs to be optimized and how do you think the program can be updated for optimization.'
+          'Considering the program you wrote and the feedback you have received from the system so far, what do you think is a possible issue with the program in terms of performance and readability? Which parts of the program need to be optimized? How do you think the program can be improved?'
       }
     ];
 
@@ -156,7 +156,7 @@ export const requestHint = async (
         pioneer.publishEvent(
           notebookPanel,
           {
-            eventName: 'ReflectionCanceled',
+            eventName: 'ReflectionCancelled',
             eventTime: Date.now(),
             eventInfo: {
               status: dialogResult.button.label,

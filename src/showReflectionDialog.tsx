@@ -13,14 +13,16 @@ class ReflectionInputWidget extends ReactWidget {
   protected render(): React.ReactElement<any> {
     return (
       <div className="reflection">
-        <label>
-          {this._message}
-          <textarea
-            name="reflection-input"
-            className="reflection-input"
-            rows={10}
-          />
-        </label>
+        <p>{this._message}</p>
+        <textarea
+          name="reflection-input"
+          className="reflection-input"
+          rows={10}
+        />
+        <p style={{ fontStyle: 'italic' }}>
+          Text entered here will be passed to the external language model
+          service to improve hint relevance.
+        </p>
       </div>
     );
   }

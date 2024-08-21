@@ -9,6 +9,7 @@ import { ICellModel } from '@jupyterlab/cells';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { requestHint } from './requestHint';
 import { HintTypeSelectionWidget } from './showHintTypeDialog';
+import { HintConsentWidget } from './showConsentDialog';
 import { createHintHistoryBar } from './createHintHistoryBar';
 
 const activateHintBot = async (
@@ -26,14 +27,14 @@ const activateHintBot = async (
   ) => {
     if (notebookPanel.model.getMetadata('firstTimeUsingHintbot') === true) {
       const dialogResult = await showDialog({
-        body: 'The hintbot extension is a prototype and not required to be used for the course. \n The hints generated could be wrong, and it involves sending data to third party services outside of the university.',
+        body: new HintConsentWidget(),
         buttons: [
           Dialog.cancelButton({
             label: 'Cancel',
             className: 'jp-mod-reject jp-mod-styled'
           }),
           Dialog.createButton({
-            label: 'Request hint',
+            label: 'Consent and request hint',
             className: 'jp-mod-accept jp-mod-styled'
           })
         ],
