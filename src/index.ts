@@ -42,6 +42,20 @@ const activateHintBot = async (
       if (dialogResult.button.label === 'Cancel') {
         return;
       }
+      pioneer.exporters.forEach(exporter => {
+        pioneer.publishEvent(
+          notebookPanel,
+          {
+            eventName: 'FirstTimeUsingHintbot',
+            eventTime: Date.now(),
+            eventInfo: {
+              status: dialogResult.button.label
+            }
+          },
+          exporter,
+          false
+        );
+      });
       notebookPanel.model.setMetadata('firstTimeUsingHintbot', false);
     }
     requestHint(notebookPanel, settings, pioneer, cell, cellIndex, hintType);
@@ -86,6 +100,17 @@ const activateHintBot = async (
             className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
           })
         ]
+      });
+      pioneer.exporters.forEach(exporter => {
+        pioneer.publishEvent(
+          notebookPanel,
+          {
+            eventName: 'HintTypeReview',
+            eventTime: Date.now()
+          },
+          exporter,
+          false
+        );
       });
     };
     hintRequestBarLeft.appendChild(hintRequestBarLeftInfoBtn);

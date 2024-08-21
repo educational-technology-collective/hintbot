@@ -133,7 +133,7 @@ export const requestHint = async (
       pioneer.publishEvent(
         notebookPanel,
         {
-          eventName: 'PreReflection',
+          eventName: 'Reflection',
           eventTime: Date.now(),
           eventInfo: {
             status: dialogResult.button.label,
@@ -152,11 +152,27 @@ export const requestHint = async (
       );
     });
     if (dialogResult.button.label === 'Cancel') {
-      await requestAPI('cancel', {
-        method: 'POST',
-        body: JSON.stringify({
-          problem_id: gradeId
-        })
+      pioneer.exporters.forEach(exporter => {
+        pioneer.publishEvent(
+          notebookPanel,
+          {
+            eventName: 'ReflectionCanceled',
+            eventTime: Date.now(),
+            eventInfo: {
+              status: dialogResult.button.label,
+              gradeId: gradeId,
+              uuid: uuid,
+              hintType: hintType,
+              promptGroup: promptGroup,
+              prompt: configs.find(config => config.hintType === hintType)[
+                promptGroup
+              ],
+              reflection: dialogResult.value
+            }
+          },
+          exporter,
+          false
+        );
       });
     } else {
       createHintBanner(

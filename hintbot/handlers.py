@@ -49,7 +49,7 @@ class Job():
                 )
                 print(response.json(), self._timer)
 
-                if response.status_code != 200:
+                if response.status_code != 200 or not json.loads(response.json()["body"])["job_finished"]:
                     print("Error")
                     self.status = STATUS["Error"]
                     return

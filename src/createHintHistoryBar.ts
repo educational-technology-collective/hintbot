@@ -47,7 +47,7 @@ export const createHintHistoryBar = (
             pioneer.publishEvent(
               notebookPanel,
               {
-                eventName: 'HintHistoryReviewEvent',
+                eventName: 'HintHistoryReview',
                 eventTime: Date.now(),
                 eventInfo: {
                   gradeId: cell.getMetadata('nbgrader').grade_id,
@@ -56,7 +56,24 @@ export const createHintHistoryBar = (
                 }
               },
               exporter,
-              true
+              false
+            );
+          });
+        } else {
+          pioneer.exporters.forEach(exporter => {
+            pioneer.publishEvent(
+              notebookPanel,
+              {
+                eventName: 'HintHistoryHide',
+                eventTime: Date.now(),
+                eventInfo: {
+                  gradeId: cell.getMetadata('nbgrader').grade_id,
+                  hintType: hintHistoryData[i][0],
+                  hintContent: hintHistoryData[i][1]
+                }
+              },
+              exporter,
+              false
             );
           });
         }
