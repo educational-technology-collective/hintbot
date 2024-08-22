@@ -43,7 +43,7 @@ export const createHintBanner = async (
     await requestAPI('cancel', {
       method: 'POST',
       body: JSON.stringify({
-        problem_id: gradeId
+        request_id: requestId
       })
     });
   };
@@ -233,10 +233,8 @@ export const createHintBanner = async (
             request_id: requestId
           })
         });
-
         if (response.status === STATUS['Loading']) {
           console.log('loading');
-          return;
         } else if (response.status === STATUS['Success']) {
           console.log('success');
           clearInterval(intervalId);
@@ -247,8 +245,8 @@ export const createHintBanner = async (
           hintRequestCancelled(requestId);
         } else {
           clearInterval(intervalId);
-          throw new Error(requestId);
-        }
+          hintRequestError(new Error(requestId));
+         }
       }, 1000);
     }
   } catch (e) {
