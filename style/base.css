@@ -117,7 +117,7 @@
 }
 
 /* Style the accordion panel. Note: hidden by default */
-.panel {
+.accordion-panel {
   background-color: white;
   max-height: 0;
   overflow: hidden;

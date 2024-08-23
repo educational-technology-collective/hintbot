@@ -26,7 +26,7 @@ export const createHintHistoryBar = (
       })`;
 
       const panel = document.createElement('div');
-      panel.classList.add('panel');
+      panel.classList.add('accordion-panel');
       const historyText = document.createElement('p');
       historyText.classList.add();
       historyText.innerText = hintHistoryData[i][1];
