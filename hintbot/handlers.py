@@ -39,7 +39,7 @@ class Job():
                     HOST_URL,
                     json={
                         "method": "GET",
-                        "port": "9002",
+                        "port": "9004",
                         "path": "feedback_generation/query/",
                         "params": {
                             "request_id": self._request_id
@@ -99,7 +99,7 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                     HOST_URL,
                     json={
                         "method": "POST",
-                        "port": "9002",
+                        "port": "9004",
                         "path": "feedback_generation/query/",
                         "body": {
                             "student_id": os.getenv('WORKSPACE_ID'),
@@ -127,7 +127,7 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                     HOST_URL,
                     json={
                         "method": "POST",
-                        "port": "9002",
+                        "port": "9004",
                         "path": "feedback_generation/query/",
                         "body": {
                             "request_id": request_id,
