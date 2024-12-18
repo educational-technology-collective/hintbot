@@ -188,7 +188,7 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                     elif "Error extracting request" in response.json()["body"]:
                         self.write({"statusCode": 400, "message": "Error extracting request"})
                 else:
-                    self.write("Unknown error when submitted a request for TA")
+                    self.write({"statusCode": '', "message": "Unknown error when submitted a request for TA"})
             elif resource == "check_ta":
                 request_id = body.get('request_id')
                 response = requests.post(
@@ -197,22 +197,21 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                         "method": "GET",
                         "port": "9004",
                         "path": "feedback_generation/request_ta/",
-                        "body": {
+                        "params": {
                             "request_id": request_id
                         }
                     },
                     timeout=10
                 )
-                print("check_ta", self.write(response.json()["body"]))
+                print("check_ta", response.json())
                 if response.status_code == 200:
-                    message = json.loads(response.json()["body"])["message"]
-                    self.write(response.json()["body"])
+                    self.write({"statusCode": 200, "feedback_ready": json.loads(response.json()['body'])['feedback_ready']})
                 elif response.status_code == 400:
-                    self.write(response.json()["body"])
+                    self.write({"statusCode": 400, "message": "Error extracting request"})
                 elif response.status_code == 404:
-                    self.write(response.json()["body"])
+                    self.write({"statusCode": 404, "message": "Request not found"})
                 else:
-                    self.write("Unknown error when submitted a request for TA")
+                    self.write({"statusCode": '', "message": "Unknown error when submitted a request for TA"})
             else:
                 self.set_status(404)
 

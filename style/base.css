@@ -116,6 +116,11 @@
   background-color: #ccc;
 }
 
+.ta-active,
+.ta-accordion:hover {
+  background-color: #c1d6c8;
+}
+
 /* Style the accordion panel. Note: hidden by default */
 .accordion-panel {
   background-color: white;
@@ -132,6 +137,10 @@
   color: #777;
   float: right;
   margin-left: 5px;
+}
+
+.ta-accordion:after {
+  color: #7b8880;
 }
 
 .active:after {

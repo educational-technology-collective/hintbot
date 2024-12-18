@@ -51,7 +51,15 @@ export const createHintBanner = async (
 
   const hintRequestCompleted = (hintContent: string, requestId: string) => {
     const hintHistory = cell.getMetadata('hintHistory') || [];
-    cell.setMetadata('hintHistory', [...hintHistory, [hintType, hintContent]]);
+    cell.setMetadata('hintHistory', [
+      ...hintHistory,
+      {
+        requestId: requestId,
+        isGPT: true,
+        hintType: hintType,
+        hintContent: hintContent
+      }
+    ]);
     pioneer.exporters.forEach(exporter => {
       pioneer.publishEvent(
         notebookPanel,
@@ -228,7 +236,18 @@ export const createHintBanner = async (
                 })
               ]
             });
+            // return hint quantity
           } else {
+            const hintHistory = cell.getMetadata('hintHistory') || [];
+            cell.setMetadata('hintHistory', [
+              ...hintHistory,
+              {
+                requestId: requestId,
+                isGPT: false,
+                hintType: hintType,
+                hintContent: ''
+              }
+            ]);
             continueTAButton.remove();
             cancelTAButton.remove();
             hintBanner.innerText =
