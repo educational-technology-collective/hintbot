@@ -4,6 +4,7 @@ import { ICellModel } from '@jupyterlab/cells';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { requestAPI } from './handler';
 import { createHintHistoryBar } from './createHintHistoryBar';
+import { showTAReflectionDialog } from './showTAReflectionDialog';
 
 export const createHintBanner = async (
   notebookPanel: NotebookPanel,
@@ -36,7 +37,7 @@ export const createHintBanner = async (
     '<p><span class="loader"></span>Retrieving hint... Please do not refresh the page.</p> <p>It usually takes around 2 minutes to generate a hint. You may continue to work on the assignment in the meantime.</p>';
 
   const hintBannerCancelButton = document.createElement('div');
-  hintBannerCancelButton.id = 'hint-banner-cancel-button';
+  hintBannerCancelButton.classList.add('hint-banner-cancel-button');
   hintBannerCancelButton.innerText = 'Cancel request';
   hintBanner.appendChild(hintBannerCancelButton);
   hintBannerCancelButton.onclick = async () => {
@@ -87,6 +88,12 @@ export const createHintBanner = async (
     unhelpfulButton.classList.add('hint-banner-button');
     unhelpfulButton.innerText = 'Unhelpful 👎';
 
+    hintBannerButtons.appendChild(unhelpfulButton);
+    hintBannerButtons.appendChild(helpfulButton);
+
+    hintBannerButtonsContainer.appendChild(hintBannerButtons);
+    hintBanner.appendChild(hintBannerButtonsContainer);
+
     const hintBannerButtonClicked = async (evaluation: string) => {
       pioneer.exporters.forEach(exporter => {
         pioneer.publishEvent(
@@ -110,21 +117,135 @@ export const createHintBanner = async (
           true
         );
       });
-      hintBanner.remove();
-      hintBannerPlaceholder.remove();
+      helpfulButton.remove();
+      unhelpfulButton.remove();
       createHintHistoryBar(cell, cellIndex, notebookPanel, pioneer);
     };
     helpfulButton.onclick = () => {
       hintBannerButtonClicked('helpful');
+      hintBanner.remove();
+      hintBannerPlaceholder.remove();
     };
     unhelpfulButton.onclick = () => {
       hintBannerButtonClicked('unhelpful');
-    };
-    hintBannerButtons.appendChild(unhelpfulButton);
-    hintBannerButtons.appendChild(helpfulButton);
+      hintBanner.innerText =
+        'Do you want to raise this issue to a member of the instructional team for help?\nInstructors may take up to 24 hours to respond to individual requests, so if your request is sent right before an assignment is due a response may not arrive until after the deadline.\nThe system will email you once a response has been made and you will be able to see instructional team feedback directly in your Jupyter notebook.';
+      const cancelTAButton = document.createElement('button');
+      cancelTAButton.classList.add('hint-banner-cancel-button');
+      cancelTAButton.innerText = 'Cancel';
+      const continueTAButton = document.createElement('button');
+      continueTAButton.classList.add('hint-banner-button');
+      continueTAButton.innerText = 'Continue';
+      hintBannerButtons.appendChild(cancelTAButton);
+      hintBannerButtons.appendChild(continueTAButton);
+      hintBanner.appendChild(hintBannerButtonsContainer);
 
-    hintBannerButtonsContainer.appendChild(hintBannerButtons);
-    hintBanner.appendChild(hintBannerButtonsContainer);
+      cancelTAButton.onclick = () => {
+        pioneer.exporters.forEach(exporter => {
+          pioneer.publishEvent(
+            notebookPanel,
+            {
+              eventName: 'TARequestCanceled',
+              eventTime: Date.now(),
+              eventInfo: {
+                gradeId: gradeId,
+                requestId: requestId,
+                uuid: uuid
+              }
+            },
+            exporter,
+            false
+          );
+        });
+        hintBanner.remove();
+        hintBannerPlaceholder.remove();
+      };
+
+      continueTAButton.onclick = async () => {
+        pioneer.exporters.forEach(exporter => {
+          pioneer.publishEvent(
+            notebookPanel,
+            {
+              eventName: 'TARequestContinued',
+              eventTime: Date.now(),
+              eventInfo: {
+                gradeId: gradeId,
+                requestId: requestId,
+                uuid: uuid
+              }
+            },
+            exporter,
+            false
+          );
+        });
+        const dialogResult = await showTAReflectionDialog(
+          "Could you briefly describe your question? Let us know why the GPT hint didn't help and how we can guide you in the right direction!"
+        );
+
+        pioneer.exporters.forEach(exporter => {
+          pioneer.publishEvent(
+            notebookPanel,
+            {
+              eventName: 'TAReflection',
+              eventTime: Date.now(),
+              eventInfo: {
+                status: dialogResult.button.label,
+                gradeId: gradeId,
+                uuid: uuid,
+                hintType: hintType,
+                // email: dialogResult.value?.email,
+                reflection: dialogResult.value?.reflection
+              }
+            },
+            exporter,
+            true
+          );
+        });
+
+        if (dialogResult.button.label === 'Submit') {
+          console.log(
+            requestId,
+            dialogResult.value?.email + '@umich.edu',
+            dialogResult.value?.reflection
+          );
+          const response: any = await requestAPI('ta', {
+            method: 'POST',
+            body: JSON.stringify({
+              request_id: requestId,
+              student_email: dialogResult.value?.email + '@umich.edu',
+              student_notes: dialogResult.value?.reflection
+            })
+          });
+          console.log('create ta ticket', response);
+
+          if (response.statusCode !== 200) {
+            showDialog({
+              title: response?.message || 'Error',
+              buttons: [
+                Dialog.createButton({
+                  label: 'Dismiss',
+                  className: 'jp-Dialog-button jp-mod-reject jp-mod-styled'
+                })
+              ]
+            });
+          } else {
+            continueTAButton.remove();
+            cancelTAButton.remove();
+            hintBanner.innerText =
+              'Request sent! You will receive a response via email when an instructional team member has reviewed your request.';
+            const closeButton = document.createElement('button');
+            closeButton.classList.add('hint-banner-cancel-button');
+            closeButton.innerText = 'Close';
+            hintBannerButtons.appendChild(closeButton);
+            hintBanner.appendChild(hintBannerButtonsContainer);
+            closeButton.onclick = () => {
+              hintBanner.remove();
+              hintBannerPlaceholder.remove();
+            };
+          }
+        }
+      };
+    };
   };
 
   const hintRequestCancelled = (requestId: string) => {
@@ -246,7 +367,7 @@ export const createHintBanner = async (
         } else {
           clearInterval(intervalId);
           hintRequestError(new Error(requestId));
-         }
+        }
       }, 1000);
     }
   } catch (e) {

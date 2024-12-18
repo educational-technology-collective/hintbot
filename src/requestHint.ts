@@ -151,30 +151,7 @@ export const requestHint = async (
         true
       );
     });
-    if (dialogResult.button.label === 'Cancel') {
-      pioneer.exporters.forEach(exporter => {
-        pioneer.publishEvent(
-          notebookPanel,
-          {
-            eventName: 'ReflectionCancelled',
-            eventTime: Date.now(),
-            eventInfo: {
-              status: dialogResult.button.label,
-              gradeId: gradeId,
-              uuid: uuid,
-              hintType: hintType,
-              promptGroup: promptGroup,
-              prompt: configs.find(config => config.hintType === hintType)[
-                promptGroup
-              ],
-              reflection: dialogResult.value
-            }
-          },
-          exporter,
-          false
-        );
-      });
-    } else {
+    if (dialogResult.button.label !== 'Cancel') {
       createHintBanner(
         notebookPanel,
         pioneer,

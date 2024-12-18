@@ -95,7 +95,6 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                 buggy_notebook_path = body.get('buggy_notebook_path')
                 f = open(buggy_notebook_path, "rb")
                 response = requests.post(
-                    # f'{HOST_URL}/feedback_generation/query/?method=POST&port=9002&student_id=x&problem_id={problem_id}',
                     HOST_URL,
                     json={
                         "method": "POST",
@@ -118,7 +117,6 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                     self.write(response.json()["body"])
                 else:
                     self.write("request ticket error")
-
             elif resource == "reflection":
                 request_id = body.get('request_id')
                 reflection_question = body.get('reflection_question')
@@ -156,11 +154,65 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                 })
                 if self.extensionapp.jobs.get(str(request_id)).status != STATUS["Loading"]:
                     del self.extensionapp.jobs[str(request_id)]
-
             elif resource == "cancel":
                 request_id = body.get('request_id')
                 self.extensionapp.jobs[str(request_id)].cancel()
-
+            elif resource == "ta":
+                request_id = body.get('request_id')
+                student_email = body.get('student_email')
+                student_notes = body.get('student_notes')
+                print(request_id, student_email, student_notes)
+                response = requests.post(
+                    HOST_URL,
+                    json={
+                        "method": "POST",
+                        "port": "9004",
+                        "path": "feedback_generation/request_ta/",
+                        "body": {
+                            "request_id": request_id,
+                            "student_email": student_email,
+                            "student_notes": student_notes,
+                        }
+                    },
+                    timeout=10
+                )
+                if response.json()['statusCode'] == 200:
+                    print(f"Successfully submitted a request for TA: {response.json()}")
+                    self.write(response.json())
+                elif response.json()['statusCode'] == 400:
+                    print(f"Error when submitted a request for TA: {response.json()}")
+                    if "Duplicate request_id" in response.json()["body"]:
+                        self.write({"statusCode": 400, "message": "Duplicated request id"})
+                    elif "Invalid student_email" in response.json()["body"]:
+                        self.write({"statusCode": 400, "message": "Invalid student email"})
+                    elif "Error extracting request" in response.json()["body"]:
+                        self.write({"statusCode": 400, "message": "Error extracting request"})
+                else:
+                    self.write("Unknown error when submitted a request for TA")
+            elif resource == "check_ta":
+                request_id = body.get('request_id')
+                response = requests.post(
+                    HOST_URL,
+                    json={
+                        "method": "GET",
+                        "port": "9004",
+                        "path": "feedback_generation/request_ta/",
+                        "body": {
+                            "request_id": request_id
+                        }
+                    },
+                    timeout=10
+                )
+                print("check_ta", self.write(response.json()["body"]))
+                if response.status_code == 200:
+                    message = json.loads(response.json()["body"])["message"]
+                    self.write(response.json()["body"])
+                elif response.status_code == 400:
+                    self.write(response.json()["body"])
+                elif response.status_code == 404:
+                    self.write(response.json()["body"])
+                else:
+                    self.write("Unknown error when submitted a request for TA")
             else:
                 self.set_status(404)
 
