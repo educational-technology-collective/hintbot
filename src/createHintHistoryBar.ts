@@ -30,8 +30,40 @@ export const createHintHistoryBar = async (
           console.log(response);
           if (response.feedback_ready)
             hintHistoryData[i]['hintContent'] = response.feedback;
+
+          pioneer.exporters.forEach(exporter => {
+            pioneer.publishEvent(
+              notebookPanel,
+              {
+                eventName: 'GetTAHint',
+                eventTime: Date.now(),
+                eventInfo: {
+                  hintContent: response.feedback,
+                  requestId: hintHistoryData[i].requestId
+                }
+              },
+              exporter,
+              true
+            );
+          });
         } else {
           hintHistoryData[i]['error'] = response.message;
+
+          pioneer.exporters.forEach(exporter => {
+            pioneer.publishEvent(
+              notebookPanel,
+              {
+                eventName: 'GetTAHint',
+                eventTime: Date.now(),
+                eventInfo: {
+                  error: response.message,
+                  requestId: hintHistoryData[i].requestId
+                }
+              },
+              exporter,
+              true
+            );
+          });
         }
       }
       if (hintHistoryData[i]?.hintContent) {
@@ -49,8 +81,6 @@ export const createHintHistoryBar = async (
 
         const panel = document.createElement('div');
         panel.classList.add('accordion-panel');
-        if (!hintHistoryData[i].isGPT)
-          panel.classList.add('ta-accordion-panel');
         const historyText = document.createElement('p');
         historyText.classList.add();
         historyText.innerText = hintHistoryData[i].hintContent;
@@ -66,46 +96,34 @@ export const createHintHistoryBar = async (
           } else {
             panel.style.maxHeight = panel.scrollHeight + 'px';
           }
-          if (this.classList.contains('active')) {
-            pioneer.exporters.forEach(exporter => {
-              pioneer.publishEvent(
-                notebookPanel,
-                {
-                  eventName: 'HintHistoryReview',
-                  eventTime: Date.now(),
-                  eventInfo: {
-                    gradeId: cell.getMetadata('nbgrader').grade_id,
-                    hintType: hintHistoryData[i][0],
-                    hintContent: hintHistoryData[i][1]
-                  }
-                },
-                exporter,
-                false
-              );
-            });
-          } else {
-            pioneer.exporters.forEach(exporter => {
-              pioneer.publishEvent(
-                notebookPanel,
-                {
-                  eventName: 'HintHistoryHide',
-                  eventTime: Date.now(),
-                  eventInfo: {
-                    gradeId: cell.getMetadata('nbgrader').grade_id,
-                    hintType: hintHistoryData[i][0],
-                    hintContent: hintHistoryData[i][1]
-                  }
-                },
-                exporter,
-                false
-              );
-            });
-          }
+          pioneer.exporters.forEach(exporter => {
+            pioneer.publishEvent(
+              notebookPanel,
+              {
+                eventName: this.classList.contains('active')
+                  ? 'HintHistoryReview'
+                  : 'HintHistoryHide',
+                eventTime: Date.now(),
+                eventInfo: {
+                  gradeId: cell.getMetadata('nbgrader').grade_id,
+                  requestId: hintHistoryData[i].requestId,
+                  isGPT: hintHistoryData[i].isGPT,
+                  hintType: hintHistoryData[i].hintType,
+                  hintContent: hintHistoryData[i].hintContent
+                }
+              },
+              exporter,
+              false
+            );
+          });
         });
       } else if (hintHistoryData[i]?.errorMessage) {
         const accordion = document.createElement('button');
-        accordion.classList.add('accordion', 'error');
+        accordion.classList.add('accordion', 'accordion-error');
         accordion.innerText = hintHistoryData[i].error;
+        const hintHistoryBarEntry = document.createElement('div');
+        hintHistoryBarEntry.appendChild(accordion);
+        hintHistoryBar.appendChild(hintHistoryBarEntry);
       }
     }
     notebookPanel.content.widgets[cellIndex].node.appendChild(hintHistoryBar);

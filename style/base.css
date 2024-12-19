@@ -110,15 +110,21 @@
   transition: 0.4s;
 }
 
+.ta-accordion {
+  background-color: #dcf3e5;
+}
+.accordion-error {
+  background-color: #eddddd;
+}
+
 /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
 .active,
 .accordion:hover {
   background-color: #ccc;
 }
 
-.ta-active,
 .ta-accordion:hover {
-  background-color: #c1d6c8;
+  background-color: #b9cdc1;
 }
 
 /* Style the accordion panel. Note: hidden by default */
