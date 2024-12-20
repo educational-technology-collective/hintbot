@@ -43,7 +43,7 @@ export const requestHint = async (
         false
       );
     });
-  } else if (remainingHints < 1) {
+  } else if (remainingHints?.hintType < 1) {
     showDialog({
       title: 'No hint left for this question.',
       buttons: [
@@ -70,14 +70,15 @@ export const requestHint = async (
   } else {
     const uuid = uuidv4();
 
-    const workspace_id: string = await requestAPI('id');
-    const promptGroupNum =
-      workspace_id
-        .split('')
-        .map(c => c.charCodeAt(0) - 64)
-        .reduce((acc, val) => acc + val, 0) % 2;
-    const promptGroup = promptGroupNum === 0 ? 'promptA' : 'promptB';
-    console.log(`Condition ${promptGroup}`);
+    // const workspace_id: string = await requestAPI('id');
+    // const promptGroupNum =
+    //   workspace_id
+    //     .split('')
+    //     .map(c => c.charCodeAt(0) - 64)
+    //     .reduce((acc, val) => acc + val, 0) % 2;
+    // const promptGroup = promptGroupNum === 0 ? 'promptA' : 'promptB';
+    const promptGroup = 'promptA';
+    // console.log(`Condition ${promptGroup}`);
 
     const configs = [
       {
@@ -119,10 +120,12 @@ export const requestHint = async (
     console.log('create ticket', response);
     const requestId = response?.request_id;
 
-    cell.setMetadata('remaining_hints', remainingHints - 1);
-    document.getElementById(gradeId).innerText = `Request Hint (${
-      remainingHints - 1
-    } left for this question)`;
+    remainingHints[hintType] -= 1;
+    cell.setMetadata('remaining_hints', remainingHints);
+    document
+      .getElementById(gradeId)
+      .querySelector('.' + hintType)
+      .querySelector('.hint-quantity').innerHTML = remainingHints[hintType];
     notebookPanel.context.save();
 
     const dialogResult = await showReflectionDialog(

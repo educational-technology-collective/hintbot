@@ -17,7 +17,7 @@ const activateHintBot = async (
   settings: ISettingRegistry.ISettings,
   pioneer: IJupyterLabPioneer
 ) => {
-  const hintQuantity = settings.get('hintQuantity').composite as number;
+  // const hintQuantity = settings.get('hintQuantity').composite as number;
   const cells = notebookPanel.content.model?.cells;
 
   const handleHintButtonClick = async (
@@ -62,11 +62,7 @@ const activateHintBot = async (
     requestHint(notebookPanel, settings, pioneer, cell, cellIndex, hintType);
   };
 
-  const createHintRequestBar = (
-    cell: ICellModel,
-    cellIndex: number,
-    hintQuantity: number
-  ) => {
+  const createHintRequestBar = (cell: ICellModel, cellIndex: number) => {
     const hintRequestBar = document.createElement('div');
     hintRequestBar.classList.add('hint-request-bar');
 
@@ -76,16 +72,9 @@ const activateHintBot = async (
 
     const hintRequestBarLeftText = document.createElement('div');
     hintRequestBarLeftText.classList.add('hint-request-bar-left-text');
-    hintRequestBarLeftText.id = cell.getMetadata('nbgrader').grade_id;
+    // hintRequestBarLeftText.id = cell.getMetadata('nbgrader').grade_id;
     hintRequestBarLeft.appendChild(hintRequestBarLeftText);
-    if (cell.getMetadata('remaining_hints') === undefined) {
-      cell.setMetadata('remaining_hints', hintQuantity);
-      hintRequestBarLeftText.innerText = `Request Hint (${hintQuantity} left for this question)`;
-    } else {
-      hintRequestBarLeftText.innerText = `Request Hint (${cell.getMetadata(
-        'remaining_hints'
-      )} left for this question)`;
-    }
+    // hintRequestBarLeftText.innerText = ""
 
     const hintRequestBarLeftInfoBtn = document.createElement('button');
     hintRequestBarLeftInfoBtn.classList.add(
@@ -118,15 +107,16 @@ const activateHintBot = async (
 
     // Planning, Debugging, Optimizing
     const hintRequestBarRight = document.createElement('div');
+    hintRequestBarRight.id = cell.getMetadata('nbgrader').grade_id;
     hintRequestBarRight.classList.add('hint-request-bar-right');
 
     const planning = document.createElement('button');
-    planning.innerText = 'Planning';
+    // planning.innerText = 'Planning';
     planning.classList.add('hint-request-bar-right-request-button', 'planning');
     planning.onclick = () => handleHintButtonClick(cell, cellIndex, 'planning');
 
     const debugging = document.createElement('button');
-    debugging.innerText = 'Debugging';
+    // debugging.innerText = 'Debugging';
     debugging.classList.add(
       'hint-request-bar-right-request-button',
       'debugging'
@@ -136,7 +126,7 @@ const activateHintBot = async (
       handleHintButtonClick(cell, cellIndex, 'debugging');
 
     const optimizing = document.createElement('button');
-    optimizing.innerText = 'Optimizing';
+    // optimizing.innerText = 'Optimizing';
     optimizing.classList.add(
       'hint-request-bar-right-request-button',
       'optimizing'
@@ -144,6 +134,22 @@ const activateHintBot = async (
 
     optimizing.onclick = () =>
       handleHintButtonClick(cell, cellIndex, 'optimizing');
+
+    if (cell.getMetadata('remaining_hints') === undefined) {
+      cell.setMetadata('remaining_hints', {
+        planning: 1,
+        debugging: 3,
+        optimizing: 4
+      });
+      planning.innerHTML = `Planning (<span class='hint-quantity'>1</span> left for this question)`;
+      debugging.innerHTML = `Debugging (<span class='hint-quantity'>3</span> left for this question)`;
+      optimizing.innerHTML = `Optimizing (<span class='hint-quantity'>4</span> left for this question)`;
+    } else {
+      const remainingHints = cell.getMetadata('remaining_hints');
+      planning.innerHTML = `Planning (<span class='hint-quantity'>${remainingHints.planning}</span> left for this question)`;
+      debugging.innerHTML = `Debugging (<span class='hint-quantity'>${remainingHints.debugging}</span> left for this question)`;
+      optimizing.innerHTML = `Optimizing (<span class='hint-quantity'>${remainingHints.optimizing}</span> left for this question)`;
+    }
 
     hintRequestBarRight.appendChild(planning);
     hintRequestBarRight.appendChild(debugging);
@@ -171,11 +177,7 @@ const activateHintBot = async (
           'cell-018440eg2f1b6a62'
         ].includes(cells.get(i).getMetadata('nbgrader')?.grade_id)
       ) {
-        const hintRequestBar = createHintRequestBar(
-          cells.get(i),
-          i,
-          hintQuantity
-        );
+        const hintRequestBar = createHintRequestBar(cells.get(i), i);
         notebookPanel.content.widgets[i].node.appendChild(hintRequestBar);
         createHintHistoryBar(cells.get(i), i, notebookPanel, pioneer);
       }

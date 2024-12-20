@@ -236,7 +236,6 @@ export const createHintBanner = async (
                 })
               ]
             });
-            // return hint quantity
           } else {
             const hintHistory = cell.getMetadata('hintHistory') || [];
             cell.setMetadata('hintHistory', [
@@ -305,14 +304,14 @@ export const createHintBanner = async (
     hintBanner.remove();
     hintBannerPlaceholder.remove();
 
-    document.getElementById(gradeId).innerText = `Request Hint (${
-      cell.getMetadata('remaining_hints') + 1
-    } left for this question)`;
-
-    cell.setMetadata(
-      'remaining_hints',
-      cell.getMetadata('remaining_hints') + 1
-    );
+    const remainingHints = cell.getMetadata('remaining_hints');
+    remainingHints[hintType] += 1;
+    cell.setMetadata('remaining_hints', remainingHints);
+    document
+      .getElementById(gradeId)
+      .querySelector('.' + hintType)
+      .querySelector('.hint-quantity').innerHTML = remainingHints[hintType];
+    notebookPanel.context.save();
 
     showDialog({
       title: 'Hint Request Error. Please try again later',
