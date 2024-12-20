@@ -18,7 +18,7 @@ export class HintTypeSelectionWidget extends ReactWidget {
     return (
       <div className="hint-info">
         You can request hints of the following types, but keep in mind you are
-        limited in the total number of hints you can request:
+        limited in the number of hints you can request:
         <div>
           <label>
             <span className="hint-request-bar-right-request-button planning">
