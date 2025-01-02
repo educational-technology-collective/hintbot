@@ -151,7 +151,7 @@ export const requestHint = async (
           }
         },
         exporter,
-        true
+        false
       );
     });
     if (dialogResult.button.label !== 'Cancel') {

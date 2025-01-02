@@ -122,7 +122,7 @@ export const createHintBanner = async (
             }
           },
           exporter,
-          true
+          false
         );
       });
       helpfulButton.remove();
@@ -187,7 +187,7 @@ export const createHintBanner = async (
           );
         });
         const dialogResult = await showTAReflectionDialog(
-          "Could you briefly describe your question? Let us know why the GPT hint didn't help and how we can guide you in the right direction!"
+          'Reflect on the problem you are facing and the response given to you by the automated hint system. Why do you think the hint is not useful?'
         );
 
         pioneer.exporters.forEach(exporter => {
@@ -206,7 +206,7 @@ export const createHintBanner = async (
               }
             },
             exporter,
-            true
+            false
           );
         });
 

@@ -27,10 +27,8 @@ export const createHintHistoryBar = async (
           })
         });
         if (response.statusCode == 200) {
-          console.log(response);
           if (response.feedback_ready)
             hintHistoryData[i]['hintContent'] = response.feedback;
-
           pioneer.exporters.forEach(exporter => {
             pioneer.publishEvent(
               notebookPanel,
@@ -38,12 +36,14 @@ export const createHintHistoryBar = async (
                 eventName: 'GetTAHint',
                 eventTime: Date.now(),
                 eventInfo: {
-                  hintContent: response.feedback,
-                  requestId: hintHistoryData[i].requestId
+                  gradeId: cell.getMetadata('nbgrader').grade_id,
+                  requestId: hintHistoryData[i].requestId,
+                  hintType: hintHistoryData[i].hintType,
+                  hintContent: response.feedback
                 }
               },
               exporter,
-              true
+              false
             );
           });
         } else {
@@ -56,12 +56,14 @@ export const createHintHistoryBar = async (
                 eventName: 'GetTAHint',
                 eventTime: Date.now(),
                 eventInfo: {
-                  error: response.message,
-                  requestId: hintHistoryData[i].requestId
+                  gradeId: cell.getMetadata('nbgrader').grade_id,
+                  requestId: hintHistoryData[i].requestId,
+                  hintType: hintHistoryData[i].hintType,
+                  error: response.message
                 }
               },
               exporter,
-              true
+              false
             );
           });
         }

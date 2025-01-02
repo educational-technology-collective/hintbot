@@ -205,7 +205,7 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                 )
                 print("check_ta", response.json())
                 if response.status_code == 200:
-                    self.write({"statusCode": 200, "feedback_ready": json.loads(response.json()['body'])['feedback_ready']})
+                    self.write({"statusCode": 200, "feedback_ready": json.loads(response.json()['body'])['feedback_ready'], "feedback": json.loads(response.json()['body']).get('feedback')})
                 elif response.status_code == 400:
                     self.write({"statusCode": 400, "message": "Error extracting request"})
                 elif response.status_code == 404:

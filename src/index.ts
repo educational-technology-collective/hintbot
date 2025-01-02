@@ -74,7 +74,7 @@ const activateHintBot = async (
     hintRequestBarLeftText.classList.add('hint-request-bar-left-text');
     // hintRequestBarLeftText.id = cell.getMetadata('nbgrader').grade_id;
     hintRequestBarLeft.appendChild(hintRequestBarLeftText);
-    // hintRequestBarLeftText.innerText = ""
+    hintRequestBarLeftText.innerText = 'Request Hint';
 
     const hintRequestBarLeftInfoBtn = document.createElement('button');
     hintRequestBarLeftInfoBtn.classList.add(
@@ -141,14 +141,14 @@ const activateHintBot = async (
         debugging: 3,
         optimizing: 4
       });
-      planning.innerHTML = `Planning (<span class='hint-quantity'>1</span> left for this question)`;
-      debugging.innerHTML = `Debugging (<span class='hint-quantity'>3</span> left for this question)`;
-      optimizing.innerHTML = `Optimizing (<span class='hint-quantity'>4</span> left for this question)`;
+      planning.innerHTML = `Planning hint (<span class='hint-quantity'>1</span> left)`;
+      debugging.innerHTML = `Debugging hint (<span class='hint-quantity'>3</span> left)`;
+      optimizing.innerHTML = `Optimizing hint (<span class='hint-quantity'>4</span> left)`;
     } else {
       const remainingHints = cell.getMetadata('remaining_hints');
-      planning.innerHTML = `Planning (<span class='hint-quantity'>${remainingHints.planning}</span> left for this question)`;
-      debugging.innerHTML = `Debugging (<span class='hint-quantity'>${remainingHints.debugging}</span> left for this question)`;
-      optimizing.innerHTML = `Optimizing (<span class='hint-quantity'>${remainingHints.optimizing}</span> left for this question)`;
+      planning.innerHTML = `Planning hint (<span class='hint-quantity'>${remainingHints.planning}</span> left)`;
+      debugging.innerHTML = `Debugging hint (<span class='hint-quantity'>${remainingHints.debugging}</span> left)`;
+      optimizing.innerHTML = `Optimizing hint (<span class='hint-quantity'>${remainingHints.optimizing}</span> left)`;
     }
 
     hintRequestBarRight.appendChild(planning);
