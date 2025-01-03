@@ -137,13 +137,13 @@ export const createHintBanner = async (
     unhelpfulButton.onclick = () => {
       hintBannerButtonClicked('unhelpful');
       hintBanner.innerText =
-        'Do you want to raise this issue to a member of the instructional team for help?\nInstructors may take up to 24 hours to respond to individual requests, so if your request is sent right before an assignment is due a response may not arrive until after the deadline.\nThe system will email you once a response has been made and you will be able to see instructional team feedback directly in your Jupyter notebook.';
+        "Do you want to raise this issue to a member of the instructional team for help? This won't cost you another hint. Instructors may take up to 24 hours to respond to individual requests, so if your request is sent right before an assignment is due a response may not arrive until after the deadline. The system will email you once a response has been made and you will be able to see instructional team feedback directly in your Jupyter notebook.\nIf you choose not to raise the issue to an instructional team member at this time, you can always connect with the instructors in the course slack channel.";
       const cancelTAButton = document.createElement('button');
       cancelTAButton.classList.add('hint-banner-cancel-button');
       cancelTAButton.innerText = 'Cancel';
       const continueTAButton = document.createElement('button');
       continueTAButton.classList.add('hint-banner-button');
-      continueTAButton.innerText = 'Continue';
+      continueTAButton.innerText = 'Raise issue';
       hintBannerButtons.appendChild(cancelTAButton);
       hintBannerButtons.appendChild(continueTAButton);
       hintBanner.appendChild(hintBannerButtonsContainer);
@@ -187,7 +187,7 @@ export const createHintBanner = async (
           );
         });
         const dialogResult = await showTAReflectionDialog(
-          'Reflect on the problem you are facing and the response given to you by the automated hint system. Why do you think the hint is not useful?'
+          'Reflect on why the AI hint is not useful to you. This will help instructors provide you better feedback.'
         );
 
         pioneer.exporters.forEach(exporter => {
@@ -244,13 +244,14 @@ export const createHintBanner = async (
                 requestId: requestId,
                 isGPT: false,
                 hintType: hintType,
-                hintContent: ''
+                hintContent: 0
               }
             ]);
             continueTAButton.remove();
             cancelTAButton.remove();
             hintBanner.innerText =
               'Request sent! You will receive a response via email when an instructional team member has reviewed your request.';
+            notebookPanel.context.save();
             const closeButton = document.createElement('button');
             closeButton.classList.add('hint-banner-cancel-button');
             closeButton.innerText = 'Close';

@@ -139,11 +139,11 @@ const activateHintBot = async (
       cell.setMetadata('remaining_hints', {
         planning: 1,
         debugging: 3,
-        optimizing: 4
+        optimizing: 1
       });
       planning.innerHTML = `Planning hint (<span class='hint-quantity'>1</span> left)`;
       debugging.innerHTML = `Debugging hint (<span class='hint-quantity'>3</span> left)`;
-      optimizing.innerHTML = `Optimizing hint (<span class='hint-quantity'>4</span> left)`;
+      optimizing.innerHTML = `Optimizing hint (<span class='hint-quantity'>1</span> left)`;
     } else {
       const remainingHints = cell.getMetadata('remaining_hints');
       planning.innerHTML = `Planning hint (<span class='hint-quantity'>${remainingHints.planning}</span> left)`;
@@ -165,6 +165,7 @@ const activateHintBot = async (
     notebookPanel.model.setMetadata('firstTimeUsingHintbot', true);
 
   if (cells) {
+    let questionIndex = 1;
     for (let i = 0; i < cells.length; i++) {
       if (
         cells.get(i).getMetadata('nbgrader') &&
@@ -180,6 +181,8 @@ const activateHintBot = async (
         const hintRequestBar = createHintRequestBar(cells.get(i), i);
         notebookPanel.content.widgets[i].node.appendChild(hintRequestBar);
         createHintHistoryBar(cells.get(i), i, notebookPanel, pioneer);
+        cells.get(i).setMetadata('questionIndex', questionIndex);
+        questionIndex += 1;
       }
     }
   }

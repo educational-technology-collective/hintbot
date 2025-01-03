@@ -28,7 +28,7 @@ class ReflectionInputWidget extends ReactWidget {
         </div>
         <div>
           <label>
-            Email:
+            Your email:
             <input type="text" name="email" className="email" />
             @umich.edu
           </label>

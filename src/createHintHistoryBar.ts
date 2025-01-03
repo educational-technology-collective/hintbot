@@ -2,6 +2,7 @@ import { NotebookPanel } from '@jupyterlab/notebook';
 import { ICellModel } from '@jupyterlab/cells';
 import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { requestAPI } from './handler';
+import { Notification } from '@jupyterlab/apputils';
 
 export const createHintHistoryBar = async (
   cell: ICellModel,
@@ -19,33 +20,40 @@ export const createHintHistoryBar = async (
 
   if (hintHistoryData && hintHistoryData.length > 0) {
     for (let i = 0; i < hintHistoryData.length; i++) {
-      if (!hintHistoryData[i].isGPT && !hintHistoryData[i]?.hintContent) {
+      if (!hintHistoryData[i].isGPT && hintHistoryData[i]?.hintContent === 0) {
         const response: any = await requestAPI('check_ta', {
           method: 'POST',
           body: JSON.stringify({
             request_id: hintHistoryData[i].requestId
           })
         });
+        console.log("*****", response, response.statusCode, response.feedback_ready)
         if (response.statusCode == 200) {
-          if (response.feedback_ready)
+          if (response.feedback_ready) {
+            const questionIndex = cell.getMetadata('questionIndex');
             hintHistoryData[i]['hintContent'] = response.feedback;
-          pioneer.exporters.forEach(exporter => {
-            pioneer.publishEvent(
-              notebookPanel,
-              {
-                eventName: 'GetTAHint',
-                eventTime: Date.now(),
-                eventInfo: {
-                  gradeId: cell.getMetadata('nbgrader').grade_id,
-                  requestId: hintHistoryData[i].requestId,
-                  hintType: hintHistoryData[i].hintType,
-                  hintContent: response.feedback
-                }
-              },
-              exporter,
-              false
+            Notification.info(
+              `Instructor feedback for Question ${questionIndex} is now available. You can view it by expanding the bar beneath the question.`,
+              { autoClose: 20000 }
             );
-          });
+            pioneer.exporters.forEach(exporter => {
+              pioneer.publishEvent(
+                notebookPanel,
+                {
+                  eventName: 'GetTAHint',
+                  eventTime: Date.now(),
+                  eventInfo: {
+                    gradeId: cell.getMetadata('nbgrader').grade_id,
+                    requestId: hintHistoryData[i].requestId,
+                    hintType: hintHistoryData[i].hintType,
+                    hintContent: response.feedback
+                  }
+                },
+                exporter,
+                false
+              );
+            });
+          }
         } else {
           hintHistoryData[i]['error'] = response.message;
 
@@ -68,18 +76,14 @@ export const createHintHistoryBar = async (
           });
         }
       }
-      if (hintHistoryData[i]?.hintContent) {
+      if (hintHistoryData[i]?.hintContent !== 0) {
         const hintHistoryBarEntry = document.createElement('div');
         const accordion = document.createElement('button');
         accordion.classList.add('accordion');
         if (!hintHistoryData[i].isGPT) accordion.classList.add('ta-accordion');
         accordion.innerText = hintHistoryData[i].isGPT
-          ? `Click to review previous GPT hint ${i + 1} (${
-              hintHistoryData[i].hintType
-            })`
-          : `Click to review previous instructor hint ${i + 1} (${
-              hintHistoryData[i].hintType
-            })`;
+          ? `Click to review previous AI hint (${hintHistoryData[i].hintType})`
+          : `Click to review previous instructor feedback (${hintHistoryData[i].hintType})`;
 
         const panel = document.createElement('div');
         panel.classList.add('accordion-panel');
