@@ -10,14 +10,15 @@ import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { requestHint } from './requestHint';
 import { HintTypeSelectionWidget } from './showHintTypeDialog';
 import { HintConsentWidget } from './showConsentDialog';
-import { createHintHistoryBar } from './createHintHistoryBar';
+import {
+  checkInstructorFeedback,
+  createHintHistoryBar
+} from './createHintHistoryBar';
 
 const activateHintBot = async (
   notebookPanel: NotebookPanel,
-  settings: ISettingRegistry.ISettings,
   pioneer: IJupyterLabPioneer
 ) => {
-  // const hintQuantity = settings.get('hintQuantity').composite as number;
   const cells = notebookPanel.content.model?.cells;
 
   const handleHintButtonClick = async (
@@ -59,7 +60,7 @@ const activateHintBot = async (
       });
       notebookPanel.model.setMetadata('firstTimeUsingHintbot', false);
     }
-    requestHint(notebookPanel, settings, pioneer, cell, cellIndex, hintType);
+    requestHint(notebookPanel, pioneer, cell, cellIndex, hintType);
   };
 
   const createHintRequestBar = (cell: ICellModel, cellIndex: number) => {
@@ -178,11 +179,32 @@ const activateHintBot = async (
           'cell-018440eg2f1b6a62'
         ].includes(cells.get(i).getMetadata('nbgrader')?.grade_id)
       ) {
-        const hintRequestBar = createHintRequestBar(cells.get(i), i);
-        notebookPanel.content.widgets[i].node.appendChild(hintRequestBar);
-        createHintHistoryBar(cells.get(i), i, notebookPanel, pioneer);
         cells.get(i).setMetadata('questionIndex', questionIndex);
         questionIndex += 1;
+
+        const hintRequestBar = createHintRequestBar(cells.get(i), i);
+        notebookPanel.content.widgets[i].node.appendChild(hintRequestBar);
+
+        checkInstructorFeedback(cells.get(i), notebookPanel, pioneer);
+        createHintHistoryBar(cells.get(i), i, notebookPanel, pioneer);
+
+        setInterval(() => {
+          const receivedNewInstructorFeedbackOrNot = checkInstructorFeedback(
+            cells.get(i),
+            notebookPanel,
+            pioneer
+          );
+          console.log(
+            `Check instructor feedback for question ${questionIndex}`
+          );
+
+          if (receivedNewInstructorFeedbackOrNot) {
+            console.log(
+              `Received new instructor feedback for question ${questionIndex}, recreating history bar`
+            );
+            createHintHistoryBar(cells.get(i), i, notebookPanel, pioneer);
+          }
+        }, 30000);
       }
     }
   }
@@ -192,20 +214,17 @@ const plugin: JupyterFrontEndPlugin<void> = {
   id: 'hintbot:plugin',
   description: 'A JupyterLab extension.',
   autoStart: true,
-  requires: [INotebookTracker, ISettingRegistry, IJupyterLabPioneer],
+  requires: [INotebookTracker, IJupyterLabPioneer],
   activate: async (
     app: JupyterFrontEnd,
     notebookTracker: INotebookTracker,
-    settingRegistry: ISettingRegistry,
     pioneer: IJupyterLabPioneer
   ) => {
-    const settings = await settingRegistry.load(plugin.id);
-
     notebookTracker.widgetAdded.connect(
       async (_, notebookPanel: NotebookPanel) => {
         await notebookPanel.revealed;
         await pioneer.loadExporters(notebookPanel);
-        await activateHintBot(notebookPanel, settings, pioneer);
+        await activateHintBot(notebookPanel, pioneer);
       }
     );
   }

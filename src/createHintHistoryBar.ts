@@ -4,6 +4,78 @@ import { IJupyterLabPioneer } from 'jupyterlab-pioneer';
 import { requestAPI } from './handler';
 import { Notification } from '@jupyterlab/apputils';
 
+export const checkInstructorFeedback = async (
+  cell: ICellModel,
+  notebookPanel: NotebookPanel,
+  pioneer: IJupyterLabPioneer
+) => {
+  const hintHistoryData = cell.getMetadata('hintHistory');
+  let receivedNewInstructorFeedbackOrNot = false;
+  for (let i = 0; i < hintHistoryData.length; i++) {
+    if (!hintHistoryData[i].isGPT && hintHistoryData[i]?.hintContent === 0) {
+      const response: any = await requestAPI('check_ta', {
+        method: 'POST',
+        body: JSON.stringify({
+          request_id: hintHistoryData[i].requestId
+        })
+      });
+      // console.log("*****", response, response.statusCode, response.feedback_ready)
+      if (response.statusCode == 200) {
+        if (response.feedback_ready) {
+          hintHistoryData[i]['hintContent'] = response.feedback;
+          const questionIndex = cell.getMetadata('questionIndex');
+          Notification.info(
+            `Instructor feedback for Question ${questionIndex} is now available. You can view it by expanding the bar beneath the question.`,
+            { autoClose: 20000 }
+          );
+          receivedNewInstructorFeedbackOrNot = true;
+          pioneer.exporters.forEach(exporter => {
+            pioneer.publishEvent(
+              notebookPanel,
+              {
+                eventName: 'GetTAHint',
+                eventTime: Date.now(),
+                eventInfo: {
+                  gradeId: cell.getMetadata('nbgrader').grade_id,
+                  requestId: hintHistoryData[i].requestId,
+                  hintType: hintHistoryData[i].hintType,
+                  hintContent: response.feedback
+                }
+              },
+              exporter,
+              false
+            );
+          });
+        }
+      } else {
+        hintHistoryData[i]['error'] = response.message;
+
+        pioneer.exporters.forEach(exporter => {
+          pioneer.publishEvent(
+            notebookPanel,
+            {
+              eventName: 'GetTAHint',
+              eventTime: Date.now(),
+              eventInfo: {
+                gradeId: cell.getMetadata('nbgrader').grade_id,
+                requestId: hintHistoryData[i].requestId,
+                hintType: hintHistoryData[i].hintType,
+                error: response.message
+              }
+            },
+            exporter,
+            false
+          );
+        });
+      }
+    }
+  }
+  if (receivedNewInstructorFeedbackOrNot) {
+    cell.setMetadata('hintHistory', hintHistoryData);
+  }
+  return receivedNewInstructorFeedbackOrNot;
+};
+
 export const createHintHistoryBar = async (
   cell: ICellModel,
   cellIndex: number,
@@ -20,62 +92,6 @@ export const createHintHistoryBar = async (
 
   if (hintHistoryData && hintHistoryData.length > 0) {
     for (let i = 0; i < hintHistoryData.length; i++) {
-      if (!hintHistoryData[i].isGPT && hintHistoryData[i]?.hintContent === 0) {
-        const response: any = await requestAPI('check_ta', {
-          method: 'POST',
-          body: JSON.stringify({
-            request_id: hintHistoryData[i].requestId
-          })
-        });
-        console.log("*****", response, response.statusCode, response.feedback_ready)
-        if (response.statusCode == 200) {
-          if (response.feedback_ready) {
-            const questionIndex = cell.getMetadata('questionIndex');
-            hintHistoryData[i]['hintContent'] = response.feedback;
-            Notification.info(
-              `Instructor feedback for Question ${questionIndex} is now available. You can view it by expanding the bar beneath the question.`,
-              { autoClose: 20000 }
-            );
-            pioneer.exporters.forEach(exporter => {
-              pioneer.publishEvent(
-                notebookPanel,
-                {
-                  eventName: 'GetTAHint',
-                  eventTime: Date.now(),
-                  eventInfo: {
-                    gradeId: cell.getMetadata('nbgrader').grade_id,
-                    requestId: hintHistoryData[i].requestId,
-                    hintType: hintHistoryData[i].hintType,
-                    hintContent: response.feedback
-                  }
-                },
-                exporter,
-                false
-              );
-            });
-          }
-        } else {
-          hintHistoryData[i]['error'] = response.message;
-
-          pioneer.exporters.forEach(exporter => {
-            pioneer.publishEvent(
-              notebookPanel,
-              {
-                eventName: 'GetTAHint',
-                eventTime: Date.now(),
-                eventInfo: {
-                  gradeId: cell.getMetadata('nbgrader').grade_id,
-                  requestId: hintHistoryData[i].requestId,
-                  hintType: hintHistoryData[i].hintType,
-                  error: response.message
-                }
-              },
-              exporter,
-              false
-            );
-          });
-        }
-      }
       if (hintHistoryData[i]?.hintContent !== 0) {
         const hintHistoryBarEntry = document.createElement('div');
         const accordion = document.createElement('button');
@@ -134,5 +150,4 @@ export const createHintHistoryBar = async (
     }
     notebookPanel.content.widgets[cellIndex].node.appendChild(hintHistoryBar);
   }
-  cell.setMetadata('hintHistory', hintHistoryData);
 };

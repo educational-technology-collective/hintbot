@@ -10,7 +10,6 @@ import { requestAPI } from './handler';
 
 export const requestHint = async (
   notebookPanel: NotebookPanel,
-  settings: ISettingRegistry.ISettings,
   pioneer: IJupyterLabPioneer,
   cell: ICellModel,
   cellIndex: number,
