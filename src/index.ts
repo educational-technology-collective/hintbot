@@ -201,7 +201,7 @@ const activateHintBot = async (
             );
             await createHintHistoryBar(cells.get(i), i, notebookPanel, pioneer);
           }
-        }, 30000);
+        }, 300000);
       }
     }
   }
