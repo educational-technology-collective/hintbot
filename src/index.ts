@@ -185,24 +185,21 @@ const activateHintBot = async (
         const hintRequestBar = createHintRequestBar(cells.get(i), i);
         notebookPanel.content.widgets[i].node.appendChild(hintRequestBar);
 
-        checkInstructorFeedback(cells.get(i), notebookPanel, pioneer);
-        createHintHistoryBar(cells.get(i), i, notebookPanel, pioneer);
+        await checkInstructorFeedback(cells.get(i), notebookPanel, pioneer);
+        await createHintHistoryBar(cells.get(i), i, notebookPanel, pioneer);
 
-        setInterval(() => {
-          const receivedNewInstructorFeedbackOrNot = checkInstructorFeedback(
-            cells.get(i),
-            notebookPanel,
-            pioneer
-          );
+        setInterval(async () => {
+          const receivedNewInstructorFeedbackOrNot =
+            await checkInstructorFeedback(cells.get(i), notebookPanel, pioneer);
           console.log(
             `Check instructor feedback for question ${questionIndex}`
           );
 
-          if (receivedNewInstructorFeedbackOrNot) {
+          if (receivedNewInstructorFeedbackOrNot === true) {
             console.log(
               `Received new instructor feedback for question ${questionIndex}, recreating history bar`
             );
-            createHintHistoryBar(cells.get(i), i, notebookPanel, pioneer);
+            await createHintHistoryBar(cells.get(i), i, notebookPanel, pioneer);
           }
         }, 30000);
       }
