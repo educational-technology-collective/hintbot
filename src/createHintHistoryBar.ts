@@ -33,7 +33,7 @@ export const checkInstructorFeedback = async (
               pioneer.publishEvent(
                 notebookPanel,
                 {
-                  eventName: 'GetTAHint',
+                  eventName: 'GetInstructorHint',
                   eventTime: Date.now(),
                   eventInfo: {
                     gradeId: cell.getMetadata('nbgrader').grade_id,
@@ -54,7 +54,7 @@ export const checkInstructorFeedback = async (
             pioneer.publishEvent(
               notebookPanel,
               {
-                eventName: 'GetTAHint',
+                eventName: 'GetInstructorHintError',
                 eventTime: Date.now(),
                 eventInfo: {
                   gradeId: cell.getMetadata('nbgrader').grade_id,

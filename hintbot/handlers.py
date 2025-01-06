@@ -177,18 +177,20 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                     timeout=10
                 )
                 if response.json()['statusCode'] == 200:
-                    print(f"Successfully submitted a request for TA: {response.json()}")
+                    print(f"Successfully submitted a request to instructors: {response.json()}")
                     self.write(response.json())
                 elif response.json()['statusCode'] == 400:
-                    print(f"Error when submitted a request for TA: {response.json()}")
+                    print(f"Error when submitted a request to instructors: {response.json()}")
                     if "Duplicate request_id" in response.json()["body"]:
                         self.write({"statusCode": 400, "message": "Duplicated request id"})
                     elif "Invalid student_email" in response.json()["body"]:
                         self.write({"statusCode": 400, "message": "Invalid student email"})
                     elif "Error extracting request" in response.json()["body"]:
                         self.write({"statusCode": 400, "message": "Error extracting request"})
+                    else:
+                        self.write({"statusCode": 400, "message": "Unknown 400 error"})
                 else:
-                    self.write({"statusCode": '', "message": "Unknown error when submitted a request for TA"})
+                    self.write({"statusCode": '', "message": "Unknown error when submitted a request to instructors"})
             elif resource == "check_ta":
                 request_id = body.get('request_id')
                 response = requests.post(
@@ -211,7 +213,7 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                 elif response.status_code == 404:
                     self.write({"statusCode": 404, "message": "Request not found"})
                 else:
-                    self.write({"statusCode": '', "message": "Unknown error when submitted a request for TA"})
+                    self.write({"statusCode": '', "message": "Unknown error when submitted a request to instructors"})
             else:
                 self.set_status(404)
 

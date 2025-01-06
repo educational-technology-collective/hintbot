@@ -137,7 +137,7 @@ export const createHintBanner = async (
     unhelpfulButton.onclick = () => {
       hintBannerButtonClicked('unhelpful');
       hintBanner.innerHTML =
-        "<div><p style='display:block'>Do you want to raise this issue to a member of the instructional team for help? <i>This won't cost you another hint. </i> Instructors may take up to 24 hours to respond to individual requests, so if your request is sent right before an assignment is due a response may not arrive until after the deadline. The system will email you once a response has been made and you will be able to see instructional team feedback directly in your Jupyter notebook.</p><p style='display:block'><i>If you choose not to raise the issue to an instructional team member at this time, you can always connect with the instructors in the course slack channel.</i></p></div>";
+        "<div><p style='display:block'>Do you want to raise this issue to a member of the instructional team for help (this will not use up a hint request)?</p><p style='display:block'>Instructors may take up to 24 hours to respond to individual requests, so if your request is sent right before an assignment is due a response may not arrive until after the deadline. The system will email you once a response has been made and you will be able to see instructional team feedback directly in your Jupyter notebook.</p><p style='display:block'>If you choose not to raise the issue to an instructional team member at this time, you can always connect with the instructors in the course slack channel.</p></div>";
       const cancelTAButton = document.createElement('button');
       cancelTAButton.classList.add('hint-banner-cancel-button');
       cancelTAButton.innerText = 'Cancel';
@@ -153,12 +153,13 @@ export const createHintBanner = async (
           pioneer.publishEvent(
             notebookPanel,
             {
-              eventName: 'TARequestCanceled',
+              eventName: 'InstructorRequestCanceled',
               eventTime: Date.now(),
               eventInfo: {
                 gradeId: gradeId,
                 requestId: requestId,
-                uuid: uuid
+                uuid: uuid,
+                hintType: hintType
               }
             },
             exporter,
@@ -174,12 +175,13 @@ export const createHintBanner = async (
           pioneer.publishEvent(
             notebookPanel,
             {
-              eventName: 'TARequestContinued',
+              eventName: 'InstructorRequestContinued',
               eventTime: Date.now(),
               eventInfo: {
                 gradeId: gradeId,
                 requestId: requestId,
-                uuid: uuid
+                uuid: uuid,
+                hintType: hintType
               }
             },
             exporter,
@@ -194,7 +196,7 @@ export const createHintBanner = async (
           pioneer.publishEvent(
             notebookPanel,
             {
-              eventName: 'TAReflection',
+              eventName: 'InstructorReflection',
               eventTime: Date.now(),
               eventInfo: {
                 status: dialogResult.button.label,
@@ -211,11 +213,6 @@ export const createHintBanner = async (
         });
 
         if (dialogResult.button.label === 'Submit') {
-          console.log(
-            requestId,
-            dialogResult.value?.email + '@umich.edu',
-            dialogResult.value?.reflection
-          );
           const response: any = await requestAPI('ta', {
             method: 'POST',
             body: JSON.stringify({
