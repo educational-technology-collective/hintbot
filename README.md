@@ -1,10 +1,45 @@
 # hintbot
 
-A JupyterLab extension.
+A JupyterLab extension that generates AI-powered hints based on students' buggy code and reflection.
 
 This extension is composed of a Python package named `hintbot`
 for the server extension and a NPM package named `hintbot`
 for the frontend extension.
+
+### Workflow
+
+0. Consent the use of the extension
+
+<a href="screenshots/0_consent.png"><img src="screenshots/0_consent.png" width="800" ></a>
+
+1. (Optional) View explanations of the three hint types
+
+<a href="screenshots/1_ai_hint_types.png"><img src="screenshots/1_ai_hint_types.png" width="800" ></a>
+
+2. Click one of the type buttons to request hint
+
+<a href="screenshots/2_choose_type_n_request.png"><img src="screenshots/2_choose_type_n_request.png" width="800" ></a>
+
+3. (Optional) Reflect on the problem
+
+<a href="screenshots/3_student_reflection.png"><img src="screenshots/3_student_reflection.png" width="800" ></a>
+
+4. Retrieve AI-generated hints based on the buggy code and reflection
+
+<a href="screenshots/4_retrieve_ai_hint.png"><img src="screenshots/4_retrieve_ai_hint.png" width="800" ></a>
+
+5. View and evaluate AI hints
+
+<a href="screenshots/5_view_n_evaluate_ai_hint.png"><img src="screenshots/5_view_n_evaluate_ai_hint.png" width="800" ></a>
+
+6. (Optional) Request instructor help if the AI hints are not helpful
+
+<a href="screenshots/6_request_instructor_help.png"><img src="screenshots/6_request_instructor_help.png" width="800" ></a>
+
+7. Review previous hint
+
+<a href="screenshots/7_review_previous_hints.png"><img src="screenshots/7_review_previous_hints.png" width="800" ></a>
+
 
 ## Requirements
 
