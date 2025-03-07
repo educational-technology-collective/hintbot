@@ -42,7 +42,7 @@ export const requestHint = async (
         false
       );
     });
-  } else if (remainingHints?.hintType < 1) {
+  } else if (remainingHints[hintType] < 1) {
     showDialog({
       title: 'No hint left for this question.',
       buttons: [
