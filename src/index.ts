@@ -170,7 +170,7 @@ const activateHintBot = async (
     for (let i = 0; i < cells.length; i++) {
       if (
         cells.get(i).getMetadata('nbgrader') &&
-        cells.get(i).getMetadata('nbgrader')?.cell_type === 'markdown' &&
+        cells.get(i)?.type === 'markdown' &&
         cells.get(i).getMetadata('nbgrader')?.grade_id &&
         ![
           'cell-d4da7eb9acee2a6d',
