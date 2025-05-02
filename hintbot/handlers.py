@@ -77,7 +77,7 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
             if resource == "version":
                 self.finish(json.dumps(__version__))
             elif resource == "id":
-                self.finish(json.dumps(os.getenv('WORKSPACE_ID')))
+                self.finish(json.dumps(os.getenv('VOC_USERID')))
             else:
                 self.set_status(404)
         except Exception as e:
@@ -101,7 +101,7 @@ class RouteHandler(ExtensionHandlerMixin, JupyterHandler):
                         "port": "9004",
                         "path": "feedback_generation/query/",
                         "body": {
-                            "student_id": os.getenv('WORKSPACE_ID'),
+                            "student_id": os.getenv('VOC_USERID'),
                             "problem_id": problem_id,
                             "hint_type": hint_type,
                             "file": json.dumps(json.load(f)),
